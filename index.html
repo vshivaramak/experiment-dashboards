@@ -664,7 +664,7 @@ Object.keys(DATA).forEach(key=>{renderTab(key.replace('_','-'),DATA[key]);});
 renderExecutiveSummary();
 renderCrossSummary();
 
-(function() {
+window.addEventListener('DOMContentLoaded', function() {
   var retDiv = document.getElementById('ret-overall');
   if (!retDiv) return;
   var yellowBox = '<div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:16px 20px;margin-bottom:20px;"><p style="font-size:1.05em;line-height:1.7;color:#1a1a2e;">Control and Lite generate nearly identical total incremental revenue for TTO Free returning users. However, Lite produces more purchasers at a lower price point. If the strategic priority is maximizing expert review adoption, broadening the customer base for DIWM, or driving downstream retention/CLV through a lower-friction entry point, Lite could be considered &mdash; but not on incremental revenue grounds alone.</p><p style="font-size:1.05em;font-weight:600;margin-top:12px;color:#1a1a2e;">Given that there will be a price increase starting April&nbsp;15th, the recommendation is to keep the experiment running.</p></div>';
@@ -672,9 +672,9 @@ renderCrossSummary();
   var tpl = document.getElementById('bayesian-tpl');
   if (tpl) {
     retDiv.appendChild(tpl.content.cloneNode(true));
-    if (typeof MathJax !== 'undefined' && MathJax.typeset) { setTimeout(function() { MathJax.typeset(); }, 500); }
+    if (typeof MathJax !== 'undefined' && MathJax.typeset) { setTimeout(function() { MathJax.typeset(); }, 1000); }
   }
-})();
+});
 </script>
 <template id="bayesian-tpl"><div class="bayesian-section"><h1>Bayesian Experiment Analysis</h1>
 <p class="subtitle">DIWM Review Upsell IXP — TTO Free Returning Users<br>
