@@ -194,11 +194,13 @@ MathJax = {
   <div class="tab active" data-tab="new-sku">New Users (by SKU)</div>
   <div class="tab" data-tab="new-overall">New Users (Overall)</div>
   <div class="tab" data-tab="ret-overall">Returning Users (Overall)</div>
+  <div class="tab" data-tab="ret-rux">Returning — RUX Cohorts</div>
 </div>
 
 <div id="new-sku" class="tab-content active"></div>
 <div id="new-overall" class="tab-content"></div>
 <div id="ret-overall" class="tab-content"></div>
+<div id="ret-rux" class="tab-content"></div>
 <div class="summary-banner" id="cross-segment-summary"></div>
 
 <script>
@@ -224,6 +226,15 @@ const DATA = {
     rows: [
       { treatment:"DIWM_LITE_STANDALONE", sku:"All", total_users:23625, viewed:9841, confirmed:200, adj_confirmed:100.0, purchased:97, pr_review:41, pr_nonreview:1, pr_any:42, rr_review:0.4227, rr_nonreview:0.0103, rr_any:0.433, actual_base:0, actual_inc:3780, actual_total:3780, proj_base:0, proj_inc:6000, proj_total:6000, reach:0.4166, take:0.0203, adj_take:0.0102, comp_view:0.0158, comp_confirm:0.775, purch_view:0.0099, purch_confirm:0.485, rev_view:0.3841, rev_confirm:18.9 },
       { treatment:"DIWM_STANDALONE", sku:"All", total_users:26347, viewed:10892, confirmed:161, adj_confirmed:161.0, purchased:55, pr_review:21, pr_nonreview:1, pr_any:21, rr_review:0.3818, rr_nonreview:0.0182, rr_any:0.3818, actual_base:0, actual_inc:4246, actual_total:4246, proj_base:0, proj_inc:9660, proj_total:9660, reach:0.4134, take:0.0148, adj_take:0.0148, comp_view:0.0123, comp_confirm:0.8323, purch_view:0.005, purch_confirm:0.3416, rev_view:0.3898, rev_confirm:26.3727 }
+    ]
+  },
+  "ret_rux": {
+    title: "Returning Users 26+ — by RUX SLR Exposure (Free)",
+    rows: [
+      { treatment:"DIWM_LITE_STANDALONE", sku:"DIWM Reco Exposed", total_users:2963, viewed:1119, confirmed:23, adj_confirmed:11.5, purchased:19, pr_review:6, pr_nonreview:0, pr_any:6, rr_review:0.3158, rr_nonreview:0, rr_any:0.3158, actual_base:0, actual_inc:750, actual_total:750, proj_base:0, proj_inc:690, proj_total:690, reach:0.3777, take:0.0206, adj_take:0.0103, comp_view:0.0179, comp_confirm:0.8696, purch_view:0.017, purch_confirm:0.8261, rev_view:0.6702, rev_confirm:32.6087 },
+      { treatment:"DIWM_STANDALONE", sku:"DIWM Reco Exposed", total_users:3483, viewed:1323, confirmed:12, adj_confirmed:12.0, purchased:4, pr_review:1, pr_nonreview:0, pr_any:1, rr_review:0.25, rr_nonreview:0, rr_any:0.25, actual_base:0, actual_inc:330, actual_total:330, proj_base:0, proj_inc:720, proj_total:720, reach:0.3798, take:0.0091, adj_take:0.0091, comp_view:0.006, comp_confirm:0.6667, purch_view:0.003, purch_confirm:0.3333, rev_view:0.2494, rev_confirm:27.5 },
+      { treatment:"DIWM_LITE_STANDALONE", sku:"Not Exposed", total_users:5323, viewed:3065, confirmed:54, adj_confirmed:27.0, purchased:23, pr_review:8, pr_nonreview:0, pr_any:8, rr_review:0.3478, rr_nonreview:0, rr_any:0.3478, actual_base:0, actual_inc:810, actual_total:810, proj_base:0, proj_inc:1620, proj_total:1620, reach:0.5758, take:0.0176, adj_take:0.0088, comp_view:0.0144, comp_confirm:0.8148, purch_view:0.0075, purch_confirm:0.4259, rev_view:0.2643, rev_confirm:15.0 },
+      { treatment:"DIWM_STANDALONE", sku:"Not Exposed", total_users:6246, viewed:3592, confirmed:61, adj_confirmed:61.0, purchased:21, pr_review:9, pr_nonreview:0, pr_any:9, rr_review:0.4286, rr_nonreview:0, rr_any:0.4286, actual_base:0, actual_inc:1531, actual_total:1531, proj_base:0, proj_inc:3660, proj_total:3660, reach:0.5751, take:0.017, adj_take:0.017, comp_view:0.0145, comp_confirm:0.8525, purch_view:0.0058, purch_confirm:0.3443, rev_view:0.4262, rev_confirm:25.0984 }
     ]
   }
 };
@@ -663,6 +674,18 @@ document.querySelectorAll('.tab').forEach(tab=>{
 Object.keys(DATA).forEach(key=>{renderTab(key.replace('_','-'),DATA[key]);});
 renderExecutiveSummary();
 renderCrossSummary();
+
+// RUX cohort context box
+(function() {
+  var ruxDiv = document.getElementById('ret-rux');
+  if (!ruxDiv) return;
+  var ruxContext = '<div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:16px 20px;margin-bottom:20px;">' +
+    '<h3 style="margin:0 0 8px;color:#92400e;">RUX SLR Funnel Context</h3>' +
+    '<p style="color:#1a1a2e;line-height:1.7;margin:0;">Returning users first encounter the <strong>RUX SLR experience</strong> earlier in the funnel, where some are shown a DIWM recommendation. This tab splits the review upsell experiment by whether users were <strong>exposed to DIWM earlier</strong> (and declined) vs <strong>not exposed</strong>.</p>' +
+    '<p style="color:#1a1a2e;line-height:1.7;margin:8px 0 0;"><strong>Key question:</strong> Does prior DIWM exposure prime users toward DIWM Lite at the review upsell stage?</p>' +
+    '</div>';
+  ruxDiv.innerHTML = ruxContext + ruxDiv.innerHTML;
+})();
 
 window.addEventListener('DOMContentLoaded', function() {
   var retDiv = document.getElementById('ret-overall');
