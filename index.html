@@ -195,12 +195,14 @@ MathJax = {
   <div class="tab" data-tab="new-overall">New Users (Overall)</div>
   <div class="tab" data-tab="ret-overall">Returning Users (Overall)</div>
   <div class="tab" data-tab="ret-rux">Returning — RUX Cohorts</div>
+  <div class="tab" data-tab="conclusion">Conclusion & Revenue Projection</div>
 </div>
 
 <div id="new-sku" class="tab-content active"></div>
 <div id="new-overall" class="tab-content"></div>
 <div id="ret-overall" class="tab-content"></div>
 <div id="ret-rux" class="tab-content"></div>
+<div id="conclusion" class="tab-content"></div>
 <div class="summary-banner" id="cross-segment-summary"></div>
 
 <script>
@@ -674,6 +676,163 @@ document.querySelectorAll('.tab').forEach(tab=>{
 Object.keys(DATA).forEach(key=>{renderTab(key.replace('_','-'),DATA[key]);});
 renderExecutiveSummary();
 renderCrossSummary();
+
+function renderProjectionTab() {
+  var el = document.getElementById('conclusion');
+  if (!el) return;
+
+  var lyStdStarts = {nf:216716, nd:151915, rf:279383};
+  var tyStdStarts = {nf:226349, nd:185932, rf:291918};
+
+  var yoy = {
+    nf: tyStdStarts.nf / lyStdStarts.nf,
+    nd: tyStdStarts.nd / lyStdStarts.nd,
+    rf: tyStdStarts.rf / lyStdStarts.rf
+  };
+
+  var lyRemStarts = {nf:56707, nd:39126, rf:60638};
+  var projRem = {
+    nf: lyRemStarts.nf * yoy.nf,
+    nd: lyRemStarts.nd * yoy.nd,
+    rf: lyRemStarts.rf * yoy.rf
+  };
+
+  var rates = {
+    nf_lite:  {s2v:6027/21497, take:337/6027, purch:192/337, aov:7950/192},
+    nf_sa:    {s2v:6123/22590, take:199/6123, purch:46/199,  aov:4574/46},
+    rf_lite:  {s2v:16648/37637, take:313/16648, purch:178/313, aov:7140/178},
+    rf_sa:    {s2v:17754/40507, take:258/17754, purch:99/258,  aov:7869/99}
+  };
+
+  function project(remStarts, r) {
+    var viewers = remStarts * r.s2v;
+    var confirms = viewers * r.take;
+    var purchases = confirms * r.purch;
+    var rev = purchases * r.aov;
+    return {starts:remStarts, viewers:viewers, confirms:confirms, purchases:purchases, rev:rev};
+  }
+
+  var p = {
+    nf_lite: project(projRem.nf, rates.nf_lite),
+    nf_sa:   project(projRem.nf, rates.nf_sa),
+    rf_lite: project(projRem.rf, rates.rf_lite),
+    rf_sa:   project(projRem.rf, rates.rf_sa)
+  };
+
+  var nfNet = p.nf_lite.rev - p.nf_sa.rev;
+  var rfNet = p.rf_lite.rev - p.rf_sa.rev;
+  var totalNet = nfNet + rfNet;
+
+  function fmt(v) { return Math.round(v).toLocaleString(); }
+  function fmtD(v) { return '$' + v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function fmtR(v) { return v.toFixed(5); }
+
+  var tblStyle = 'width:100%;border-collapse:collapse;margin-bottom:28px;';
+  var thStyle = 'background:var(--primary);color:#fff;padding:10px 14px;text-align:left;font-size:13px;';
+  var tdStyle = 'padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;';
+  var tdR = 'padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;';
+
+  var html = '';
+
+  // Decision callout
+  html += '<div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:20px 24px;margin-bottom:28px;">';
+  html += '<h3 style="margin:0 0 10px;color:#92400e;">Experiment Decision & Baselines</h3>';
+  html += '<p style="color:#1a1a2e;line-height:1.8;margin:0;">Based on the experiment results (Experiment 327146 for New Users, 327147 for Returning Users), the following baselines have been established:</p>';
+  html += '<ul style="color:#1a1a2e;line-height:1.8;margin:8px 0 0;padding-left:20px;">';
+  html += '<li><strong>New TTO Free:</strong> DIWM Lite (100%) &mdash; stat sig on actual incremental revenue (P &gt; 99.99%)</li>';
+  html += '<li><strong>New TTO Deluxe:</strong> DIWM Standalone (100%) &mdash; all metrics conclusive for Control</li>';
+  html += '<li><strong>Returning TTO Free:</strong> DIWM Lite (100%) &mdash; volume advantage with near-equipoise on revenue</li>';
+  html += '</ul></div>';
+
+  // YoY Growth Factor table
+  html += '<h3 style="margin:0 0 12px;font-size:16px;">YoY Growth Factors (TY25 vs LY TY24)</h3>';
+  html += '<table style="' + tblStyle + '"><thead><tr>';
+  html += '<th style="' + thStyle + '">Segment</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">LY STD Starts</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">TY25 STD Starts</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">YoY Ratio</th>';
+  html += '</tr></thead><tbody>';
+  html += '<tr><td style="' + tdStyle + '">New TTO Free</td><td style="' + tdR + '">' + fmt(lyStdStarts.nf) + '</td><td style="' + tdR + '">' + fmt(tyStdStarts.nf) + '</td><td style="' + tdR + '">' + fmtR(yoy.nf) + '</td></tr>';
+  html += '<tr><td style="' + tdStyle + '">New TTO Deluxe</td><td style="' + tdR + '">' + fmt(lyStdStarts.nd) + '</td><td style="' + tdR + '">' + fmt(tyStdStarts.nd) + '</td><td style="' + tdR + '">' + fmtR(yoy.nd) + '</td></tr>';
+  html += '<tr><td style="' + tdStyle + '">Returning TTO Free</td><td style="' + tdR + '">' + fmt(lyStdStarts.rf) + '</td><td style="' + tdR + '">' + fmt(tyStdStarts.rf) + '</td><td style="' + tdR + '">' + fmtR(yoy.rf) + '</td></tr>';
+  html += '</tbody></table>';
+
+  // Projection table
+  html += '<h3 style="margin:0 0 12px;font-size:16px;">Remaining-Season Revenue Projection (Apr 15 &ndash; Apr 30, 2026)</h3>';
+  html += '<table style="' + tblStyle + '"><thead><tr>';
+  html += '<th style="' + thStyle + '">Segment</th>';
+  html += '<th style="' + thStyle + '">Baseline</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">Proj Starts</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">Proj Viewers</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">Proj Confirms</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">Proj Purchases</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">Proj Inc Rev</th>';
+  html += '</tr></thead><tbody>';
+
+  var projRows = [
+    {seg:'New TTO Free', bl:'DIWM Lite (new)', d:p.nf_lite},
+    {seg:'New TTO Free', bl:'Standalone (old)', d:p.nf_sa},
+    {seg:'Returning TTO Free', bl:'DIWM Lite (new)', d:p.rf_lite},
+    {seg:'Returning TTO Free', bl:'Standalone (old)', d:p.rf_sa}
+  ];
+  for (var i = 0; i < projRows.length; i++) {
+    var r = projRows[i];
+    var bg = i % 2 === 0 ? '' : 'background:#f8f9fa;';
+    html += '<tr style="' + bg + '">';
+    html += '<td style="' + tdStyle + '">' + r.seg + '</td>';
+    html += '<td style="' + tdStyle + '">' + r.bl + '</td>';
+    html += '<td style="' + tdR + '">' + fmt(r.d.starts) + '</td>';
+    html += '<td style="' + tdR + '">' + fmt(r.d.viewers) + '</td>';
+    html += '<td style="' + tdR + '">' + fmt(r.d.confirms) + '</td>';
+    html += '<td style="' + tdR + '">' + fmt(r.d.purchases) + '</td>';
+    html += '<td style="' + tdR + '">' + fmtD(r.d.rev) + '</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+
+  // Net Incremental Revenue Summary
+  html += '<h3 style="margin:0 0 12px;font-size:16px;">Net Incremental Revenue Summary (New Baseline vs Old Baseline)</h3>';
+  html += '<table style="' + tblStyle + '"><thead><tr>';
+  html += '<th style="' + thStyle + '">Segment</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">New Baseline Rev</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">Old Baseline Rev</th>';
+  html += '<th style="' + thStyle + 'text-align:right;">Net Incremental</th>';
+  html += '</tr></thead><tbody>';
+
+  function netColor(v) { return v >= 0 ? '#16a34a' : '#dc2626'; }
+  html += '<tr><td style="' + tdStyle + '">New TTO Free</td>';
+  html += '<td style="' + tdR + '">' + fmtD(p.nf_lite.rev) + '</td>';
+  html += '<td style="' + tdR + '">' + fmtD(p.nf_sa.rev) + '</td>';
+  html += '<td style="' + tdR + 'font-weight:600;color:' + netColor(nfNet) + ';">' + fmtD(nfNet) + '</td></tr>';
+
+  html += '<tr style="background:#f8f9fa;"><td style="' + tdStyle + '">Returning TTO Free</td>';
+  html += '<td style="' + tdR + '">' + fmtD(p.rf_lite.rev) + '</td>';
+  html += '<td style="' + tdR + '">' + fmtD(p.rf_sa.rev) + '</td>';
+  html += '<td style="' + tdR + 'font-weight:600;color:' + netColor(rfNet) + ';">' + fmtD(rfNet) + '</td></tr>';
+
+  var totalBg = totalNet >= 0 ? 'background:#dcfce7;' : 'background:#fee2e2;';
+  html += '<tr style="' + totalBg + 'font-weight:700;"><td style="' + tdStyle + '">TOTAL</td>';
+  html += '<td style="' + tdR + '">' + fmtD(p.nf_lite.rev + p.rf_lite.rev) + '</td>';
+  html += '<td style="' + tdR + '">' + fmtD(p.nf_sa.rev + p.rf_sa.rev) + '</td>';
+  html += '<td style="' + tdR + 'color:' + netColor(totalNet) + ';font-size:15px;">' + fmtD(totalNet) + '</td></tr>';
+  html += '</tbody></table>';
+
+  // Assumptions
+  html += '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:20px 24px;margin-top:8px;">';
+  html += '<h4 style="margin:0 0 10px;font-size:14px;color:#334155;">Assumptions & Methodology</h4>';
+  html += '<ul style="color:#475569;font-size:13px;line-height:1.9;margin:0;padding-left:18px;">';
+  html += '<li>LY data: TY24 season, Dec 16 2024 &ndash; Apr 30 2025</li>';
+  html += '<li>TY25 season-to-date: Dec 16 2025 &ndash; Apr 14 2026</li>';
+  html += '<li>Projection window: Apr 15 &ndash; Apr 30, 2026 (remaining season)</li>';
+  html += '<li>Starts-to-View ratio from TY25 experiment observed data (not LY)</li>';
+  html += '<li>Conversion rates (take rate, purchase rate, AOV) from experiment data through Apr 14</li>';
+  html += '<li>No age filter &mdash; rates applied to full population</li>';
+  html += '<li>New TTO Deluxe excluded from delta calculation (baseline unchanged &mdash; Standalone remains)</li>';
+  html += '</ul></div>';
+
+  el.innerHTML = html;
+}
+renderProjectionTab();
 
 // RUX cohort context box
 (function() {
