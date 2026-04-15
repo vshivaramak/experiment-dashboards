@@ -697,8 +697,8 @@ function renderProjectionTab() {
     rf: lyRemStarts.rf * yoy.rf
   };
 
-  // Starts-to-View: experiment viewers (both arms) / TY25 funnel Starts (Mar 31-Apr 14, all ages)
-  var funnelStarts = {nf:39034, nd:35017, rf:43820};
+  // Starts-to-View: experiment viewers (both arms) / Age 26+ Funnel Starts (Mar 31-Apr 14)
+  var funnelStarts = {nf:21926, nd:26141, rf:32159};
   var expViewers   = {nf:6027+6123, nd:4865+4903, rf:16648+17754};
   var s2v = {nf: expViewers.nf/funnelStarts.nf, nd: expViewers.nd/funnelStarts.nd, rf: expViewers.rf/funnelStarts.rf};
 
@@ -727,19 +727,24 @@ function renderProjectionTab() {
   var nfNet = p.nf_lite.rev - p.nf_sa.rev;
   var rfNet = p.rf_lite.rev - p.rf_sa.rev;
   var totalNet = nfNet + rfNet;
+  var daysRemaining = 16;
 
   function fmt(v) { return Math.round(v).toLocaleString(); }
   function fmtD(v) { return '$' + v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   function fmtR(v) { return v.toFixed(5); }
-
-  var tblStyle = 'width:100%;border-collapse:collapse;margin-bottom:28px;';
-  var thStyle = 'background:var(--primary);color:#fff;padding:10px 14px;text-align:left;font-size:13px;';
-  var tdStyle = 'padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;';
-  var tdR = 'padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;';
+  function netColor(v) { return v >= 0 ? '#16a34a' : '#dc2626'; }
+  function netBg(v) { return v >= 0 ? '#dcfce7' : '#fee2e2'; }
 
   var html = '';
 
-  // Decision callout
+  // 1. Hero KPI card
+  html += '<div style="background:linear-gradient(135deg,' + (totalNet >= 0 ? '#dcfce7,#bbf7d0' : '#fee2e2,#fecaca') + ');border:2px solid ' + (totalNet >= 0 ? '#86efac' : '#fca5a5') + ';border-radius:12px;padding:28px 32px;margin-bottom:28px;text-align:center;">';
+  html += '<div style="font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:#475569;margin-bottom:8px;">Projected Net Incremental Revenue (Apr 15\u201330)</div>';
+  html += '<div style="font-size:42px;font-weight:800;color:' + netColor(totalNet) + ';line-height:1.2;">' + fmtD(totalNet) + '</div>';
+  html += '<div style="font-size:14px;color:#64748b;margin-top:6px;">' + fmtD(totalNet / daysRemaining) + ' per day \u00d7 ' + daysRemaining + ' days</div>';
+  html += '</div>';
+
+  // 2. Decision callout
   html += '<div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:20px 24px;margin-bottom:28px;">';
   html += '<h3 style="margin:0 0 10px;color:#92400e;">Experiment Decision & Baselines</h3>';
   html += '<p style="color:#1a1a2e;line-height:1.8;margin:0;">Based on the experiment results (Experiment 327146 for New Users, 327147 for Returning Users), the following baselines have been established:</p>';
@@ -749,42 +754,57 @@ function renderProjectionTab() {
   html += '<li><strong>Returning TTO Free:</strong> DIWM Lite (100%) &mdash; volume advantage with near-equipoise on revenue</li>';
   html += '</ul></div>';
 
-  // YoY Growth Factor table
-  html += '<h3 style="margin:0 0 12px;font-size:16px;">YoY Growth Factors (TY25 vs LY TY24)</h3>';
-  html += '<table style="' + tblStyle + '"><thead><tr>';
-  html += '<th style="' + thStyle + '">Segment</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">LY STD Starts</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">TY25 STD Starts</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">YoY Ratio</th>';
+  // 3. Collapsible Methodology & Inputs
+  var tblStyleSm = 'width:100%;border-collapse:collapse;margin-bottom:20px;';
+  var thStyleSm = 'background:var(--primary);color:#fff;padding:8px 12px;text-align:left;font-size:12px;';
+  var tdStyleSm = 'padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;';
+  var tdRSm = 'padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;text-align:right;';
+
+  html += '<details style="margin-bottom:28px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">';
+  html += '<summary style="padding:14px 20px;background:#f8fafc;cursor:pointer;font-size:15px;font-weight:600;color:#334155;user-select:none;">Methodology &amp; Inputs (click to expand)</summary>';
+  html += '<div style="padding:20px 24px;">';
+
+  // YoY Growth table
+  html += '<h4 style="margin:0 0 10px;font-size:14px;color:#334155;">YoY Growth Factors (TY25 vs LY TY24)</h4>';
+  html += '<table style="' + tblStyleSm + '"><thead><tr>';
+  html += '<th style="' + thStyleSm + '">Segment</th>';
+  html += '<th style="' + thStyleSm + 'text-align:right;">LY STD Starts</th>';
+  html += '<th style="' + thStyleSm + 'text-align:right;">TY25 STD Starts</th>';
+  html += '<th style="' + thStyleSm + 'text-align:right;">YoY Ratio</th>';
   html += '</tr></thead><tbody>';
-  html += '<tr><td style="' + tdStyle + '">New TTO Free</td><td style="' + tdR + '">' + fmt(lyStdStarts.nf) + '</td><td style="' + tdR + '">' + fmt(tyStdStarts.nf) + '</td><td style="' + tdR + '">' + fmtR(yoy.nf) + '</td></tr>';
-  html += '<tr><td style="' + tdStyle + '">New TTO Deluxe</td><td style="' + tdR + '">' + fmt(lyStdStarts.nd) + '</td><td style="' + tdR + '">' + fmt(tyStdStarts.nd) + '</td><td style="' + tdR + '">' + fmtR(yoy.nd) + '</td></tr>';
-  html += '<tr><td style="' + tdStyle + '">Returning TTO Free</td><td style="' + tdR + '">' + fmt(lyStdStarts.rf) + '</td><td style="' + tdR + '">' + fmt(tyStdStarts.rf) + '</td><td style="' + tdR + '">' + fmtR(yoy.rf) + '</td></tr>';
+  html += '<tr><td style="' + tdStyleSm + '">New TTO Free</td><td style="' + tdRSm + '">' + fmt(lyStdStarts.nf) + '</td><td style="' + tdRSm + '">' + fmt(tyStdStarts.nf) + '</td><td style="' + tdRSm + '">' + fmtR(yoy.nf) + '</td></tr>';
+  html += '<tr><td style="' + tdStyleSm + '">New TTO Deluxe</td><td style="' + tdRSm + '">' + fmt(lyStdStarts.nd) + '</td><td style="' + tdRSm + '">' + fmt(tyStdStarts.nd) + '</td><td style="' + tdRSm + '">' + fmtR(yoy.nd) + '</td></tr>';
+  html += '<tr><td style="' + tdStyleSm + '">Returning TTO Free</td><td style="' + tdRSm + '">' + fmt(lyStdStarts.rf) + '</td><td style="' + tdRSm + '">' + fmt(tyStdStarts.rf) + '</td><td style="' + tdRSm + '">' + fmtR(yoy.rf) + '</td></tr>';
   html += '</tbody></table>';
 
-  // Starts-to-View Ratio table
-  html += '<h3 style="margin:0 0 12px;font-size:16px;">Starts-to-View Ratios (Mar 31 &ndash; Apr 14, 2026)</h3>';
-  html += '<table style="' + tblStyle + '"><thead><tr>';
-  html += '<th style="' + thStyle + '">Segment</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Funnel Starts</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Experiment Viewers (both arms)</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Starts-to-View Ratio</th>';
+  // S2V table
+  html += '<h4 style="margin:0 0 10px;font-size:14px;color:#334155;">Starts-to-View Ratios (Age 26+, Mar 31 &ndash; Apr 14, 2026)</h4>';
+  html += '<table style="' + tblStyleSm + '"><thead><tr>';
+  html += '<th style="' + thStyleSm + '">Segment</th>';
+  html += '<th style="' + thStyleSm + 'text-align:right;">Age 26+ Funnel Starts</th>';
+  html += '<th style="' + thStyleSm + 'text-align:right;">Experiment Viewers (both arms)</th>';
+  html += '<th style="' + thStyleSm + 'text-align:right;">Starts-to-View Ratio</th>';
   html += '</tr></thead><tbody>';
-  html += '<tr><td style="' + tdStyle + '">New TTO Free</td><td style="' + tdR + '">' + fmt(funnelStarts.nf) + '</td><td style="' + tdR + '">' + fmt(expViewers.nf) + '</td><td style="' + tdR + '">' + fmtR(s2v.nf) + '</td></tr>';
-  html += '<tr><td style="' + tdStyle + '">New TTO Deluxe</td><td style="' + tdR + '">' + fmt(funnelStarts.nd) + '</td><td style="' + tdR + '">' + fmt(expViewers.nd) + '</td><td style="' + tdR + '">' + fmtR(s2v.nd) + '</td></tr>';
-  html += '<tr><td style="' + tdStyle + '">Returning TTO Free</td><td style="' + tdR + '">' + fmt(funnelStarts.rf) + '</td><td style="' + tdR + '">' + fmt(expViewers.rf) + '</td><td style="' + tdR + '">' + fmtR(s2v.rf) + '</td></tr>';
+  html += '<tr><td style="' + tdStyleSm + '">New TTO Free</td><td style="' + tdRSm + '">' + fmt(funnelStarts.nf) + '</td><td style="' + tdRSm + '">' + fmt(expViewers.nf) + '</td><td style="' + tdRSm + '">' + fmtR(s2v.nf) + '</td></tr>';
+  html += '<tr><td style="' + tdStyleSm + '">New TTO Deluxe</td><td style="' + tdRSm + '">' + fmt(funnelStarts.nd) + '</td><td style="' + tdRSm + '">' + fmt(expViewers.nd) + '</td><td style="' + tdRSm + '">' + fmtR(s2v.nd) + '</td></tr>';
+  html += '<tr><td style="' + tdStyleSm + '">Returning TTO Free</td><td style="' + tdRSm + '">' + fmt(funnelStarts.rf) + '</td><td style="' + tdRSm + '">' + fmt(expViewers.rf) + '</td><td style="' + tdRSm + 'color:#b45309;font-weight:600;">' + fmtR(s2v.rf) + ' *</td></tr>';
   html += '</tbody></table>';
+  html += '<p style="font-size:11px;color:#b45309;margin:0 0 0 4px;">* Returning Free S2V exceeds 1.0 because experiment viewers include users who started before Mar 31 but reached the review step during the experiment window. Raw ratio used in projection since the same carry-over effect will apply to the remaining period.</p>';
 
-  // Projection table
+  html += '</div></details>';
+
+  // 4. Simplified Projection table
+  var thStyleMain = 'background:var(--primary);color:#fff;padding:10px 14px;text-align:left;font-size:13px;';
+  var tdStyleMain = 'padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;';
+  var tdRMain = 'padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;';
+
   html += '<h3 style="margin:0 0 12px;font-size:16px;">Remaining-Season Revenue Projection (Apr 15 &ndash; Apr 30, 2026)</h3>';
-  html += '<table style="' + tblStyle + '"><thead><tr>';
-  html += '<th style="' + thStyle + '">Segment</th>';
-  html += '<th style="' + thStyle + '">Baseline</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Proj Starts</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Proj Viewers</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Proj Confirms</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Proj Purchases</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Proj Inc Rev</th>';
+  html += '<table style="width:100%;border-collapse:collapse;margin-bottom:28px;"><thead><tr>';
+  html += '<th style="' + thStyleMain + '">Segment</th>';
+  html += '<th style="' + thStyleMain + '">Baseline</th>';
+  html += '<th style="' + thStyleMain + 'text-align:right;">Proj Viewers</th>';
+  html += '<th style="' + thStyleMain + 'text-align:right;">Proj Purchases</th>';
+  html += '<th style="' + thStyleMain + 'text-align:right;">Proj Inc Rev</th>';
   html += '</tr></thead><tbody>';
 
   var projRows = [
@@ -797,55 +817,53 @@ function renderProjectionTab() {
     var r = projRows[i];
     var bg = i % 2 === 0 ? '' : 'background:#f8f9fa;';
     html += '<tr style="' + bg + '">';
-    html += '<td style="' + tdStyle + '">' + r.seg + '</td>';
-    html += '<td style="' + tdStyle + '">' + r.bl + '</td>';
-    html += '<td style="' + tdR + '">' + fmt(r.d.starts) + '</td>';
-    html += '<td style="' + tdR + '">' + fmt(r.d.viewers) + '</td>';
-    html += '<td style="' + tdR + '">' + fmt(r.d.confirms) + '</td>';
-    html += '<td style="' + tdR + '">' + fmt(r.d.purchases) + '</td>';
-    html += '<td style="' + tdR + '">' + fmtD(r.d.rev) + '</td>';
+    html += '<td style="' + tdStyleMain + '">' + r.seg + '</td>';
+    html += '<td style="' + tdStyleMain + '">' + r.bl + '</td>';
+    html += '<td style="' + tdRMain + '">' + fmt(r.d.viewers) + '</td>';
+    html += '<td style="' + tdRMain + '">' + fmt(r.d.purchases) + '</td>';
+    html += '<td style="' + tdRMain + '">' + fmtD(r.d.rev) + '</td>';
     html += '</tr>';
   }
   html += '</tbody></table>';
 
-  // Net Incremental Revenue Summary
-  html += '<h3 style="margin:0 0 12px;font-size:16px;">Net Incremental Revenue Summary (New Baseline vs Old Baseline)</h3>';
-  html += '<table style="' + tblStyle + '"><thead><tr>';
-  html += '<th style="' + thStyle + '">Segment</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">New Baseline Rev</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Old Baseline Rev</th>';
-  html += '<th style="' + thStyle + 'text-align:right;">Net Incremental</th>';
+  // 5. Net Incremental Revenue Summary
+  html += '<h3 style="margin:0 0 14px;font-size:18px;">Net Incremental Revenue Summary</h3>';
+  html += '<table style="width:100%;border-collapse:collapse;margin-bottom:28px;"><thead><tr>';
+  html += '<th style="' + thStyleMain + '">Segment</th>';
+  html += '<th style="' + thStyleMain + 'text-align:right;">New Baseline Rev</th>';
+  html += '<th style="' + thStyleMain + 'text-align:right;">Old Baseline Rev</th>';
+  html += '<th style="' + thStyleMain + 'text-align:right;">Net Incremental</th>';
+  html += '<th style="' + thStyleMain + 'text-align:right;">Per Day (/16d)</th>';
   html += '</tr></thead><tbody>';
 
-  function netColor(v) { return v >= 0 ? '#16a34a' : '#dc2626'; }
-  html += '<tr><td style="' + tdStyle + '">New TTO Free</td>';
-  html += '<td style="' + tdR + '">' + fmtD(p.nf_lite.rev) + '</td>';
-  html += '<td style="' + tdR + '">' + fmtD(p.nf_sa.rev) + '</td>';
-  html += '<td style="' + tdR + 'font-weight:600;color:' + netColor(nfNet) + ';">' + fmtD(nfNet) + '</td></tr>';
+  html += '<tr><td style="' + tdStyleMain + 'font-size:14px;">New TTO Free</td>';
+  html += '<td style="' + tdRMain + 'font-size:14px;">' + fmtD(p.nf_lite.rev) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:14px;">' + fmtD(p.nf_sa.rev) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:15px;font-weight:700;color:' + netColor(nfNet) + ';">' + fmtD(nfNet) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:13px;color:' + netColor(nfNet) + ';">' + fmtD(nfNet / daysRemaining) + '</td></tr>';
 
-  html += '<tr style="background:#f8f9fa;"><td style="' + tdStyle + '">Returning TTO Free</td>';
-  html += '<td style="' + tdR + '">' + fmtD(p.rf_lite.rev) + '</td>';
-  html += '<td style="' + tdR + '">' + fmtD(p.rf_sa.rev) + '</td>';
-  html += '<td style="' + tdR + 'font-weight:600;color:' + netColor(rfNet) + ';">' + fmtD(rfNet) + '</td></tr>';
+  html += '<tr style="background:#f8f9fa;"><td style="' + tdStyleMain + 'font-size:14px;">Returning TTO Free</td>';
+  html += '<td style="' + tdRMain + 'font-size:14px;">' + fmtD(p.rf_lite.rev) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:14px;">' + fmtD(p.rf_sa.rev) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:15px;font-weight:700;color:' + netColor(rfNet) + ';">' + fmtD(rfNet) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:13px;color:' + netColor(rfNet) + ';">' + fmtD(rfNet / daysRemaining) + '</td></tr>';
 
-  var totalBg = totalNet >= 0 ? 'background:#dcfce7;' : 'background:#fee2e2;';
-  html += '<tr style="' + totalBg + 'font-weight:700;"><td style="' + tdStyle + '">TOTAL</td>';
-  html += '<td style="' + tdR + '">' + fmtD(p.nf_lite.rev + p.rf_lite.rev) + '</td>';
-  html += '<td style="' + tdR + '">' + fmtD(p.nf_sa.rev + p.rf_sa.rev) + '</td>';
-  html += '<td style="' + tdR + 'color:' + netColor(totalNet) + ';font-size:15px;">' + fmtD(totalNet) + '</td></tr>';
+  html += '<tr style="background:' + netBg(totalNet) + ';"><td style="' + tdStyleMain + 'font-size:16px;font-weight:800;">TOTAL</td>';
+  html += '<td style="' + tdRMain + 'font-size:15px;font-weight:700;">' + fmtD(p.nf_lite.rev + p.rf_lite.rev) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:15px;font-weight:700;">' + fmtD(p.nf_sa.rev + p.rf_sa.rev) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:20px;font-weight:800;color:' + netColor(totalNet) + ';">' + fmtD(totalNet) + '</td>';
+  html += '<td style="' + tdRMain + 'font-size:15px;font-weight:700;color:' + netColor(totalNet) + ';">' + fmtD(totalNet / daysRemaining) + '</td></tr>';
   html += '</tbody></table>';
 
-  // Assumptions
-  html += '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:20px 24px;margin-top:8px;">';
-  html += '<h4 style="margin:0 0 10px;font-size:14px;color:#334155;">Assumptions & Methodology</h4>';
-  html += '<ul style="color:#475569;font-size:13px;line-height:1.9;margin:0;padding-left:18px;">';
-  html += '<li>LY data: TY24 season, Dec 16 2024 &ndash; Apr 30 2025</li>';
-  html += '<li>TY25 season-to-date: Dec 16 2025 &ndash; Apr 14 2026</li>';
-  html += '<li>Projection window: Apr 15 &ndash; Apr 30, 2026 (remaining season)</li>';
-  html += '<li>Starts-to-View ratio = experiment viewers (both arms) / TY25 funnel Starts (Mar 31&ndash;Apr 14, all ages, no age filter)</li>';
-  html += '<li>Conversion rates (take rate, purchase rate, AOV) from experiment data through Apr 14</li>';
-  html += '<li>No age filter &mdash; rates applied to full population</li>';
-  html += '<li>New TTO Deluxe excluded from delta calculation (baseline unchanged &mdash; Standalone remains)</li>';
+  // 6. Assumptions (compact)
+  html += '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:14px 20px;">';
+  html += '<h4 style="margin:0 0 6px;font-size:13px;color:#334155;">Assumptions</h4>';
+  html += '<ul style="color:#475569;font-size:12px;line-height:1.7;margin:0;padding-left:16px;">';
+  html += '<li>LY: TY24 season (Dec 16 2024 &ndash; Apr 30 2025) &bull; TY25 STD: Dec 16 2025 &ndash; Apr 14 2026</li>';
+  html += '<li>Projection window: Apr 15 &ndash; Apr 30, 2026 (16 days)</li>';
+  html += '<li>S2V ratio = experiment viewers (both arms, age 26+) / age 26+ funnel starts (Mar 31&ndash;Apr 14)</li>';
+  html += '<li>Conversion rates (take, purchase, AOV) from experiment data through Apr 14</li>';
+  html += '<li>New TTO Deluxe excluded from delta (baseline unchanged &mdash; Standalone remains)</li>';
   html += '</ul></div>';
 
   el.innerHTML = html;
