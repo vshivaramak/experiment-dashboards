@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Defector Model L&amp;I Summary — TY25 · CG Canada</title>
+<style>
+  :root {
+    --ink: #1A1F2E;
+    --muted: #5B6475;
+    --border: #E6E8EF;
+    --bg: #F4F5F9;
+    --slide-bg: #FFFFFF;
+    --blue: #2F6BED;
+    --green: #187D44;
+    --purple: #7C3AED;
+    --amber: #9A6A00;
+    --accent-overall: #B45309;
+    --accent-model: #2F6BED;
+    --accent-campaigns: #7C3AED;
+    --accent-recommendation: #187D44;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 32px 16px 64px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  header.report-header { text-align: center; margin-bottom: 32px; }
+  header.report-header .eyebrow {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+  }
+  header.report-header h1 { font-size: 1.7rem; font-weight: 700; margin-bottom: 4px; }
+  header.report-header .subtitle { font-size: 0.85rem; color: var(--muted); }
+  header.report-header .dashboard-link {
+    display: inline-block; margin-top: 14px; padding: 8px 18px;
+    background: var(--blue); color: white; text-decoration: none;
+    border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+    transition: background 0.15s;
+  }
+  header.report-header .dashboard-link:hover { background: #1E54CC; }
+
+  .toc { display: flex; justify-content: center; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+  .toc a {
+    text-decoration: none; background: var(--slide-bg); color: var(--ink);
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: 999px;
+    font-size: 0.85rem; font-weight: 600; transition: border-color 0.15s, background 0.15s;
+  }
+  .toc a:hover { border-color: var(--blue); background: #EFF4FF; }
+  .toc a .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .toc a.overall .dot { background: var(--accent-overall); }
+  .toc a.model .dot { background: var(--accent-model); }
+  .toc a.campaigns .dot { background: var(--accent-campaigns); }
+  .toc a.recommendation .dot { background: var(--accent-recommendation); }
+
+  .slide {
+    background: var(--slide-bg); border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(20, 30, 60, 0.08);
+    padding: 36px 44px 40px; margin-bottom: 32px;
+    border-top: 6px solid var(--blue); position: relative; min-height: 360px;
+  }
+  .slide.overall { border-top-color: var(--accent-overall); }
+  .slide.model { border-top-color: var(--accent-model); }
+  .slide.campaigns { border-top-color: var(--accent-campaigns); }
+  .slide.recommendation { border-top-color: var(--accent-recommendation); }
+
+  .slide-num {
+    position: absolute; top: 18px; right: 24px; font-size: 0.7rem;
+    font-weight: 700; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .slide h2 {
+    font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .slide h2 .icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 700;
+  }
+  .slide.overall h2 .icon { background: rgba(180, 83, 9, 0.12); color: var(--accent-overall); }
+  .slide.model h2 .icon { background: rgba(47, 107, 237, 0.12); color: var(--accent-model); }
+  .slide.campaigns h2 .icon { background: rgba(124, 58, 237, 0.12); color: var(--accent-campaigns); }
+  .slide.recommendation h2 .icon { background: rgba(24, 125, 68, 0.12); color: var(--accent-recommendation); }
+
+  .slide .subtitle { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+  .slide p { margin-bottom: 12px; font-size: 0.95rem; }
+  .slide .source-link {
+    display: inline-block; margin-top: 12px; font-size: 0.82rem;
+    color: var(--blue); text-decoration: none; font-weight: 600;
+  }
+  .slide .source-link:hover { text-decoration: underline; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  thead th {
+    text-align: left; background: #F7F8FB; padding: 10px 14px;
+    border-bottom: 2px solid var(--border); font-size: 0.72rem;
+    font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  thead th:nth-child(1) { width: 22%; }
+  thead th:nth-child(2) { width: 39%; }
+  thead th:nth-child(3) { width: 39%; }
+  tbody td { padding: 14px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody td:first-child { font-weight: 600; color: var(--ink); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #FAFBFD; }
+
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .pill.green { background: #E5F3EC; color: var(--green); }
+  .pill.red { background: #FBE5E8; color: #B91C1C; }
+  .pill.amber { background: #FEF3C7; color: var(--amber); }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: 0.75rem;
+    margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--blue); text-decoration: none; }
+
+  @media (max-width: 720px) {
+    .slide { padding: 24px 20px 28px; }
+    thead th:nth-child(1) { width: 30%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="report-header">
+    <div class="eyebrow">CG Canada · Analytics</div>
+    <h1>Defector Model L&amp;I Summary — TY25</h1>
+    <div class="subtitle">Top learnings &amp; implications — Model evaluation, NetFile &amp; FlashSale defector campaigns · Published May 13, 2026</div>
+    <a class="dashboard-link" href="https://github.intuit.com/pages/vshivaramak/experiment-dashboards/defector/" target="_blank">Open the full interactive dashboard ↗</a>
+  </header>
+
+  <nav class="toc">
+    <a href="#overall" class="overall"><span class="dot"></span>Slide 1 · Overall</a>
+    <a href="#model" class="model"><span class="dot"></span>Slide 2 · Model performance</a>
+    <a href="#campaigns" class="campaigns"><span class="dot"></span>Slide 3 · Campaigns</a>
+    <a href="#recommendation" class="recommendation"><span class="dot"></span>Slide 4 · Recommendation</a>
+  </nav>
+
+  <!-- ========== SLIDE 1 · OVERALL ========== -->
+  <section class="slide overall" id="overall">
+    <div class="slide-num">Slide 1 of 4</div>
+    <h2><span class="icon">OV</span>Overall — One-Page Read</h2>
+    <div class="subtitle">What the defector model + 3 campaigns told us about TY25</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Topic</th>
+          <th>Learning</th>
+          <th>Implication for FY27</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Tactical, not strategic</td>
+          <td>The defector model is a precision-targeting tool, not a stand-alone strategy. Its biggest leverage is informing <b>when and at what threshold</b> to deploy outreach during the season — not whether to run campaigns at all.</td>
+          <td>Treat the defector score as input to existing campaign deployment decisions (cadence, threshold, offer depth), not as a separate go/no-go signal.</td>
+        </tr>
+        <tr>
+          <td>Average +10.17 pp in-window lift</td>
+          <td>Customers on the campaign list completed in-window <b>+10.17 pp more</b> than customers not on the list (avg across NetFile R3+, NetFile R2+, FlashSale). <span class="pill amber">Directional only</span> — without a holdout, ON-list was hand-picked to be a more engaged crowd than NOT-on-list, inflating the apparent lift.</td>
+          <td>This is real signal but cannot be claimed as causal. Build a holdout (see Slide 4) so FY27 numbers actually mean what they look like.</td>
+        </tr>
+        <tr>
+          <td>Click is the conversion conduit</td>
+          <td>~70–78% of in-window completers who <i>clicked</i> the email redeemed the campaign pcode. &lt;1% of non-clickers did. The click → offer → file path is where the offer's value lives.</td>
+          <td>Invest in the click experience (subject lines, send timing, list hygiene) before tightening targeting. Higher leverage and doesn't require a holdout to measure.</td>
+        </tr>
+        <tr>
+          <td>Model precision is time-dependent</td>
+          <td>Score quality strengthens through the season as behavioral signals accumulate. <b>≥0.7 hits 90%+ precision in Jan–Feb; ≥0.5 maintains the same precision by Mar–Apr.</b> AUC rises 0.79 → 0.98 across the season.</td>
+          <td>Use a <b>dynamic threshold</b>: start the season selective (T≥0.7), open the gate (T≥0.5) as the season progresses. A fixed threshold wastes precision early or recall late.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <a class="source-link" href="https://github.intuit.com/pages/vshivaramak/experiment-dashboards/defector/" target="_blank">→ Full breakdown in the defector dashboard</a>
+  </section>
+
+  <!-- ========== SLIDE 2 · MODEL PERFORMANCE ========== -->
+  <section class="slide model" id="model">
+    <div class="slide-num">Slide 2 of 4</div>
+    <h2><span class="icon">MD</span>Model Performance — Learnings &amp; Implications</h2>
+    <div class="subtitle">H2O Driverless AI defector model · XGBoost + LightGBM stacked ensemble · 379 features · AUC 0.958 on test</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Report</th>
+          <th>Learning</th>
+          <th>Implication for FY27</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AUC over the season</td>
+          <td>Model ranking quality (threshold-independent) rises from <b>0.788 (Jan 6)</b> to <b>0.981 (Apr 15)</b>. The score is informative early but sharpens dramatically as more outcome materializes.</td>
+          <td>Don't lock a single targeting threshold for the whole season. Recalibrate the operational threshold every ~4 weeks.</td>
+        </tr>
+        <tr>
+          <td>Precision @ threshold</td>
+          <td><b>T ≥ 0.7 → 91% precision</b> on Jan 6; same precision is reached at <b>T ≥ 0.5 by mid-March</b>. The "right" threshold drops by ~0.2 over the season.</td>
+          <td>Implement a dynamic-threshold playbook: T ≥ 0.7 in Jan–Feb, T ≥ 0.6 in early March, T ≥ 0.5 from mid-March on.</td>
+        </tr>
+        <tr>
+          <td>Top features driving the model</td>
+          <td>5 of the top 10 features are time-since/time-to features anchored on prior-year filing cadence. Login behavior and CRA deadline proximity follow. Tenure indicators are useful but secondary.</td>
+          <td>Filing-cadence and engagement freshness are the strongest signals. Future model iterations should preserve these and explore additional engagement-recency features.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <a class="source-link" href="https://github.intuit.com/pages/vshivaramak/experiment-dashboards/defector/" target="_blank">→ Tab 3 in the dashboard: calibration over the season + decile breakdown</a>
+  </section>
+
+  <!-- ========== SLIDE 3 · CAMPAIGNS ========== -->
+  <section class="slide campaigns" id="campaigns">
+    <div class="slide-num">Slide 3 of 4</div>
+    <h2><span class="icon">CP</span>Campaigns — Learnings &amp; Implications</h2>
+    <div class="subtitle">3 campaigns evaluated · NetFile (R3+), NetFile (R2+), FlashSale (R3+) · Season-end Apr 30</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Campaign</th>
+          <th>Learning</th>
+          <th>Implication for FY27</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>NetFile (R3+)</td>
+          <td>In-window completion <b>+12.87 pp</b> ON-list vs NOT (<span class="pill green">stat-sig</span>). True-defector rate <b>−1.52 pp</b> (<span class="pill amber">not stat-sig</span>). 70.5% of in-window clickers redeemed the campaign pcode.</td>
+          <td>Run again FY27. Add a 5–10% within-list random holdout to convert the directional True-defector signal into a causal answer.</td>
+        </tr>
+        <tr>
+          <td>NetFile (R2+)</td>
+          <td>In-window completion <b>+9.13 pp</b> ON-list vs NOT (<span class="pill green">stat-sig</span>). True-defector rate <b>+1.57 pp</b> ON-list (<span class="pill amber">not stat-sig</span>, but wrong direction). Click → pcode lower than R3+.</td>
+          <td>Do not widen R3+ → R2+ on current evidence — R2 customers are less price-sensitive. Keep NetFile R3+ as the primary cohort; revisit R2 only with a holdout result in hand.</td>
+        </tr>
+        <tr>
+          <td>FlashSale (R3+)</td>
+          <td>In-window completion <b>+9.32 pp</b> ON-list vs NOT (<span class="pill green">stat-sig</span>). True-defector rate <b>+1.48 pp</b> ON-list (<span class="pill amber">not stat-sig</span>). Highest in-window completion rate among clickers of the three.</td>
+          <td>Short offer window works — keep FlashSale's 7-day window. Test discount depth variation alongside the holdout to find the optimal price-elasticity point.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <a class="source-link" href="https://github.intuit.com/pages/vshivaramak/experiment-dashboards/defector/" target="_blank">→ Tab 1 in the dashboard: per-campaign Sankey, drill-downs, descriptors</a>
+  </section>
+
+  <!-- ========== SLIDE 4 · RECOMMENDATION ========== -->
+  <section class="slide recommendation" id="recommendation">
+    <div class="slide-num">Slide 4 of 4</div>
+    <h2><span class="icon">RX</span>Recommendation — Should We Run Defector Campaigns Next Season?</h2>
+    <div class="subtitle">One question, one answer — for senior leadership</div>
+
+    <p style="font-size:1.05rem;font-weight:600;color:var(--green);margin-bottom:16px">
+      Yes — run defector campaigns in FY27. With one structural change and three tactical refinements.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Change</th>
+          <th>What &amp; why</th>
+          <th>Decision criterion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Structural · Random holdout</td>
+          <td>Reserve a <b>5–10% within-list random holdout</b> on every defector campaign. Without it, the ON-vs-NOT Δ is confounded by targeting bias — exactly why TY25 cannot prove a True-defector reduction.</td>
+          <td>Non-negotiable. Without this, FY27 will end in the same "we cannot tell if it worked" position.</td>
+        </tr>
+        <tr>
+          <td>Tactical · Dynamic threshold</td>
+          <td>Start the season at <b>T ≥ 0.7</b> (Jan–Feb), drop to <b>T ≥ 0.5</b> by mid-March. Locks operational threshold to model AUC reality.</td>
+          <td>Codify a quarterly threshold review in the campaign cadence.</td>
+        </tr>
+        <tr>
+          <td>Tactical · Click experience</td>
+          <td>~75% of in-window completers redeemed the pcode via click. Anything that lifts open/click rate (subject lines, send timing, list hygiene) likely has more leverage than tighter targeting.</td>
+          <td>A/B test 2–3 subject-line and send-time variants in the first FY27 send.</td>
+        </tr>
+        <tr>
+          <td>Tactical · Don't widen R3+ → R2+</td>
+          <td>R2+ NetFile showed a <i>higher</i> True-defector rate on the list than off it (+1.57 pp). Not stat-sig, but no evidence supports widening the cohort.</td>
+          <td>Keep NetFile R3+ in FY27. Revisit only after a holdout result is in hand.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:20px;padding:14px 18px;background:#F4F5F9;border-radius:8px;font-style:italic;color:var(--ink)">
+      <b>Honest one-liner for leadership:</b> We can't prove the campaigns saved customers this year — none of the True-defector reductions were stat-sig, and targeting bias confounds what we can see. But the model is strong (AUC 0.98 by April), in-window filing did lift on-list, and the click → pcode path works. Recommend: run again, but with a small random holdout this time so we can finally answer the question.
+    </p>
+
+    <a class="source-link" href="https://github.intuit.com/pages/vshivaramak/experiment-dashboards/defector/" target="_blank">→ Full Q&amp;A in the dashboard's Overview sub-tab</a>
+  </section>
+
+  <footer>
+    TurboTax Canada · Analytics · <a href="https://github.intuit.com/pages/vshivaramak/experiment-dashboards/defector/">Defector dashboard</a>
+  </footer>
+
+</div>
+</body>
+</html>
