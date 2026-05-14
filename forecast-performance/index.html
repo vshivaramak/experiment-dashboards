@@ -237,7 +237,7 @@ nav .nav-links a.active { background: var(--accent); color: #fff; }
 
     <!-- At a Glance Table -->
     <div style="background:#1a1d27;border:1px solid #2d3140;border-radius:12px;padding:20px;margin-bottom:28px;">
-      <div style="font-size:16px;font-weight:600;color:#e4e6eb;margin-bottom:16px;">At a Glance</div>
+      <div style="font-size:16px;font-weight:600;color:#e4e6eb;margin-bottom:16px;">At a Glance &mdash; How Close Did We Get?</div>
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
         <thead>
           <tr style="border-bottom:2px solid #2d3140;">
@@ -260,29 +260,35 @@ nav .nav-links a.active { background: var(--accent); color: #fff; }
             <td style="padding:10px 12px;text-align:right;color:#9ca3af;">1.39M</td>
             <td style="padding:10px 12px;text-align:right;color:#9ca3af;">1.83M</td>
           </tr>
-          <tr style="border-bottom:1px solid #2d3140;">
-            <td style="padding:10px 12px;color:#9ca3af;">Revised Finance Target</td>
-            <td style="padding:10px 12px;text-align:right;color:#9ca3af;">416.1K</td>
-            <td style="padding:10px 12px;text-align:right;color:#9ca3af;">1.31M</td>
-            <td style="padding:10px 12px;text-align:right;color:#9ca3af;">1.72M</td>
+          <tr style="border-bottom:2px solid #2d3140;background:rgba(34,197,94,0.06);">
+            <td style="padding:10px 12px;color:#22c55e;font-weight:700;">Projection Accuracy (ITL)</td>
+            <td style="padding:10px 12px;text-align:right;"><span style="background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700;padding:3px 10px;border-radius:4px;">101</span></td>
+            <td style="padding:10px 12px;text-align:right;"><span style="background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700;padding:3px 10px;border-radius:4px;">99</span></td>
+            <td style="padding:10px 12px;text-align:right;"><span style="background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700;padding:3px 10px;border-radius:4px;">100</span></td>
           </tr>
           <tr style="border-bottom:1px solid #2d3140;">
-            <td style="padding:10px 12px;color:#9ca3af;">vs Finance</td>
-            <td style="padding:10px 12px;text-align:right;"><span style="color:#22c55e;font-weight:600;">+5% ahead</span></td>
-            <td style="padding:10px 12px;text-align:right;"><span style="color:#22c55e;font-weight:600;">+5% ahead</span></td>
-            <td style="padding:10px 12px;text-align:right;"><span style="color:#22c55e;font-weight:600;">+5% ahead</span></td>
+            <td style="padding:10px 12px;color:#9ca3af;">Actual ITPY (vs FY25)</td>
+            <td style="padding:10px 12px;text-align:right;color:#22c55e;font-weight:600;">107</td>
+            <td style="padding:10px 12px;text-align:right;color:#22c55e;font-weight:600;">103</td>
+            <td style="padding:10px 12px;text-align:right;color:#22c55e;font-weight:600;">104</td>
           </tr>
           <tr style="border-bottom:1px solid #2d3140;">
-            <td style="padding:10px 12px;color:#9ca3af;">vs FY25</td>
-            <td style="padding:10px 12px;text-align:right;color:#22c55e;">+7% <span style="color:#6b7280;">(ITPY 107)</span></td>
-            <td style="padding:10px 12px;text-align:right;color:#22c55e;">+1% <span style="color:#6b7280;">(ITPY 101)</span></td>
-            <td style="padding:10px 12px;text-align:right;color:#22c55e;">+2% <span style="color:#6b7280;">(ITPY 102)</span></td>
+            <td style="padding:10px 12px;color:#9ca3af;font-size:13px;">FY25 Actual</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">408.0K</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">1.36M</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">1.77M</td>
+          </tr>
+          <tr style="border-bottom:1px solid #2d3140;">
+            <td style="padding:10px 12px;color:#9ca3af;font-size:13px;">Revised Finance Target</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">416.1K</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">1.31M</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">1.72M</td>
           </tr>
           <tr>
             <td style="padding:10px 12px;color:#9ca3af;font-size:13px;">Original Mgt Target</td>
-            <td style="padding:10px 12px;text-align:right;color:#9ca3af;font-size:13px;">536.6K</td>
-            <td style="padding:10px 12px;text-align:right;color:#9ca3af;font-size:13px;">1.38M</td>
-            <td style="padding:10px 12px;text-align:right;color:#9ca3af;font-size:13px;">1.92M</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">536.6K</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">1.38M</td>
+            <td style="padding:10px 12px;text-align:right;color:#6b7280;font-size:13px;">1.92M</td>
           </tr>
         </tbody>
       </table>
@@ -805,31 +811,33 @@ function renderScorecards() {
     var projErrorPct = (projError / actual * 100).toFixed(1);
     var projSign = projError >= 0 ? '+' : '';
 
-    var itfColor = itf <= 100 ? '#22c55e' : (itf <= 105 ? '#eab308' : '#ef4444');
-    var itfBarWidth = Math.min(Math.round(actual / revisedTarget * 100), 110);
+    var projAccuracy = Math.round(lastProjection / actual * 100);
+    var projAccuracyColor = Math.abs(projAccuracy - 100) <= 2 ? '#22c55e' : (Math.abs(projAccuracy - 100) <= 5 ? '#eab308' : '#ef4444');
+    var barWidth = Math.min(projAccuracy, 110);
     var itpyColor = itpy >= 100 ? '#22c55e' : '#ef4444';
     var itpyIcon = itpy >= 100 ? '&#9650;' : '&#9660;';
+    var errorColor = Math.abs(parseFloat(projErrorPct)) <= 2 ? '#22c55e' : '#eab308';
 
     html += '<div style="background:#1a1d27;border:1px solid #2d3140;border-radius:12px;padding:20px;border-top:3px solid ' + segColors[seg] + ';">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
         '<span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">' + seg + ' — Landed</span>' +
-        '<span style="font-size:11px;color:#6b7280;">Projected: ' + fmtNum(lastProjection) + ' (' + projSign + projErrorPct + '%)</span>' +
+        '<span style="font-size:11px;color:' + itpyColor + ';">' + itpyIcon + ' ITPY: ' + itpy + '</span>' +
       '</div>' +
       '<div style="font-size:28px;font-weight:700;color:#e4e6eb;">' + fmtNum(actual) + '</div>' +
       '<div style="margin:12px 0 8px;">' +
         '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">' +
-          '<span style="color:#9ca3af;">vs Revised Finance Target</span>' +
-          '<span style="color:' + itfColor + ';font-weight:600;">' + Math.round(actual / revisedTarget * 100) + '% of target</span>' +
+          '<span style="color:#9ca3af;">Projection Accuracy (ITL)</span>' +
+          '<span style="color:' + projAccuracyColor + ';font-weight:600;">ITL ' + projAccuracy + '</span>' +
         '</div>' +
         '<div style="background:#242835;border-radius:4px;height:8px;overflow:hidden;">' +
-          '<div style="background:' + itfColor + ';height:100%;width:' + itfBarWidth + '%;border-radius:4px;transition:width 0.3s;"></div>' +
+          '<div style="background:' + projAccuracyColor + ';height:100%;width:' + barWidth + '%;border-radius:4px;transition:width 0.3s;"></div>' +
         '</div>' +
       '</div>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px;">' +
-        '<span style="color:' + itpyColor + ';">' + itpyIcon + ' ITPY: ' + itpy + '</span>' +
-        '<span style="color:#22c55e;font-weight:600;">+' + fmtNum(actual - revisedTarget) + ' vs rev. target</span>' +
+        '<span style="color:#9ca3af;">Projected: <b style="color:#e4e6eb;">' + fmtNum(lastProjection) + '</b></span>' +
+        '<span style="color:' + errorColor + ';font-weight:600;">' + projSign + fmtNum(Math.abs(projError)) + ' (' + projSign + projErrorPct + '%)</span>' +
       '</div>' +
-      '<div style="font-size:11px;color:#6b7280;">FY25: ' + fmtNum(fy25) + '&nbsp;&nbsp;|&nbsp;&nbsp;Rev. Target: ' + fmtNum(revisedTarget) + '&nbsp;&nbsp;|&nbsp;&nbsp;Orig: ' + fmtNum(origTarget) + '</div>' +
+      '<div style="font-size:11px;color:#6b7280;">FY25: ' + fmtNum(fy25) + '&nbsp;&nbsp;|&nbsp;&nbsp;Rev. Fin: ' + fmtNum(revisedTarget) + '&nbsp;&nbsp;|&nbsp;&nbsp;Orig Tgt: ' + fmtNum(origTarget) + '</div>' +
     '</div>';
   });
 
