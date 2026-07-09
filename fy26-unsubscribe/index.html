@@ -18,6 +18,7 @@
   h1 { font-size: 1.75rem; margin: 0 0 4px; }
   h2 { font-size: 1.2rem; margin: 32px 0 12px; border-bottom: 2px solid var(--accent); padding-bottom: 6px; }
   .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+  .meta a { color: var(--accent); }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
     padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
   .callout { background: #edf7f1; border-left: 4px solid var(--accent); padding: 14px 16px;
@@ -91,8 +92,9 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-08 20:57 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
-    Source: tax_dm_ca.fact_catax_mktg_event</p>
+  <p class="meta">Generated 2026-07-09 14:33 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+    Source: tax_dm_ca.fact_catax_mktg_event ·
+    <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
   <div class="callout">
     <strong>How to read this report:</strong> We looked at everyone who unsubscribed in FY26 and asked two questions:
@@ -104,7 +106,7 @@
   <div class="card">
     <h2 style="margin-top:0;border:none">Executive Summary</h2>
     <ul class="summary">
-      <li>11,733 people unsubscribed from email in FY26 (Aug 1 2025 – Jul 31 2026 fiscal year).</li><li>Desktop offer emails (DSKT) have the highest unsub rate per delivery (0.85%).</li><li>The email most people unsubscribed on: TT121385 (991 unsubs).</li><li>Promotional emails (PRE) appeared in 72% of unsubscriber journeys — a calendar cadence signal.</li><li>NETFILE (TT982869) was received by 61% of unsubscribers but only 7.0% unsubscribed on it — reduce sends, not just fix one email.</li><li>Journey mix: 33% had ≤3 emails before unsub; 30% had 10+ — both quick exits and fatigue.</li><li>PRE unsub rate peaks at 3 emails received (0.74% of that 115,874-person cohort — ~1x the 1-email PRE rate). Early PRE exposure is where exit risk concentrates.</li>
+      <li>11,733 people unsubscribed from email in FY26 (Aug 1 2025 – Jul 31 2026 fiscal year).</li><li>DSKT (desktop offers) has the highest unsub rate per email delivered (0.20%) in the FY26 volume table.</li><li>The email most people unsubscribed on: TT121385 (991 unsubs).</li><li>Promotional emails (PRE) appeared in 72% of unsubscriber journeys — a calendar cadence signal.</li><li>NETFILE (TT982869) was received by 61% of unsubscribers but only 7.0% unsubscribed on it — reduce sends, not just fix one email.</li><li>Among unsubscribers who received PRE/POST/ENG/DSKT mail, 39% had ≤3 emails before leaving; 17% had 10+.</li><li>PRE unsub rate peaks at 3 emails received (0.74% of that 115,874-person cohort). Early PRE exposure is where exit risk concentrates.</li>
     </ul>
   </div>
 
@@ -356,7 +358,7 @@
   
 <details class="appendix">
   <summary>Appendix: Unsub rates by campaign code</summary>
-  <div class="appendix-body"><table><thead><tr><th>Code</th><th>Sends</th><th>Deliveries</th><th>Unsubs</th><th>Unsub/Delivery %</th><th>Unsub/Send %</th><th>Acct Unsub %</th><th>% of All Unsubs*</th></tr></thead><tbody><tr><td>PRE</td><td>2555256</td><td>2538335</td><td>6568</td><td>0.2588</td><td>0.2570</td><td>0.1820</td><td>55.98</td></tr><tr><td>DSKT</td><td>532049</td><td>526175</td><td>4464</td><td>0.8484</td><td>0.8390</td><td>0.6777</td><td>38.05</td></tr><tr><td>ENG</td><td>2179855</td><td>2170645</td><td>1692</td><td>0.0779</td><td>0.0776</td><td>0.0570</td><td>14.42</td></tr><tr><td>POST</td><td>634200</td><td>632462</td><td>0</td><td>0.0000</td><td>0.0000</td><td>0.0000</td><td>0.00</td></tr></tbody></table><p class="note">* % of All Unsubs can exceed 100% summed across codes because one email can match multiple codes.</p></div>
+  <div class="appendix-body"><table><thead><tr><th>Code</th><th>Sends</th><th>Deliveries</th><th>Unsubs</th><th>Unsub/Delivery %</th><th>Unsub/Send %</th><th>Acct Unsub %</th><th>% of All Unsubs*</th></tr></thead><tbody><tr><td>PRE</td><td>2555256</td><td>2538335</td><td>6568</td><td>0.2588</td><td>0.2570</td><td>0.1820</td><td>55.98</td></tr><tr><td>DSKT</td><td>532049</td><td>526175</td><td>4464</td><td>0.8484</td><td>0.8390</td><td>0.6777</td><td>38.05</td></tr><tr><td>ENG</td><td>2179855</td><td>2170645</td><td>1692</td><td>0.0779</td><td>0.0776</td><td>0.0570</td><td>14.42</td></tr><tr><td>POST</td><td>634200</td><td>632462</td><td>0</td><td>0.0000</td><td>0.0000</td><td>0.0000</td><td>0.00</td></tr></tbody></table><p class="note">Unsub/Delivery % = distinct subscribers who unsubbed ÷ distinct subscribers delivered (subscriber grain). FY26 Email Volume table uses email-event grain (unsub events ÷ delivery events). * % of All Unsubs can exceed 100% summed across codes because one email can match multiple codes.</p></div>
 </details>
   
 <details class="appendix">
@@ -471,6 +473,10 @@
       <li><strong>Out of scope:</strong> Cox survival, Markov removal effect, causal holdout, ML fatigue scoring.</li>
     </ul></div>
 </details>
+
+  <p class="note" style="text-align:center;margin-top:32px">
+    TurboTax Canada · Analytics · <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">FY26 Unsubscribe Dashboard</a>
+  </p>
 </div>
 </body>
 </html>
