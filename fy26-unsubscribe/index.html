@@ -86,16 +86,35 @@
   .tenure-panel { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #fafbfc; }
   .tenure-panel-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--accent); }
   .bar-row.mini { grid-template-columns: 36px 1fr 44px; font-size: 0.72rem; }
+  .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin: 8px 0 24px; }
+  .tab-btn { appearance: none; border: 1px solid var(--border); border-bottom: none;
+    background: #eef2f6; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer;
+    padding: 10px 18px; border-radius: 8px 8px 0 0; margin-bottom: -2px; }
+  .tab-btn:hover { color: var(--accent); }
+  .tab-btn.active { background: var(--card); color: var(--accent);
+    border-color: var(--border); border-bottom: 2px solid var(--card); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .draft-badge { display: inline-block; background: #fff3e0; color: var(--review);
+    padding: 1px 7px; border-radius: 10px; font-size: 0.68rem; font-weight: 700; margin-left: 6px; }
+  .callout.draft-callout { background: #fff8ec; border-left-color: var(--review); }
+  .callout.draft-callout strong { color: var(--review); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-09 14:33 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-13 19:43 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-braze">Braze Analysis</button>
+    <button class="tab-btn" data-tab="tab-consent">Email Consent Draft<span class="draft-badge">DRAFT</span></button>
+  </div>
+
+  <div id="tab-braze" class="tab-content active">
   <div class="callout">
     <strong>How to read this report:</strong> We looked at everyone who unsubscribed in FY26 and asked two questions:
     (1) Which email did they unsubscribe from? (2) Which emails did they receive earlier?
@@ -473,10 +492,190 @@
       <li><strong>Out of scope:</strong> Cox survival, Markov removal effect, causal holdout, ML fatigue scoring.</li>
     </ul></div>
 </details>
+  </div>
+
+  <div id="tab-consent" class="tab-content">
+  
+  
+    <div class="callout draft-callout">
+      <strong>Draft — inferred campaign attribution.</strong>
+      This tab measures a <strong>derived full email opt-out</strong>: the first FY26 moment a
+      subscriber turned <em>all six</em> consent categories (product, offer, training, content,
+      survey, partner) off. It is rebuilt from consent change history in
+      <code>tax_stg_ca.stg_catax_email_consent</code> and <strong>never</strong> uses the
+      <code>email_consent_summary</code> column. Because consent records carry no campaign ID,
+      each opt-out is attributed to the <strong>latest email delivered in the 90 days before</strong>
+      it — a proxy for exposure, not proof of cause. 22% of opt-outs have no
+      qualifying delivery in that window and are shown as <strong>Unattributed</strong>.
+    </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;border:none">What This Tab Measures</h2>
+    <ul class="summary">
+      <li>105,594 subscribers fully opted out of email in FY26 — about 12x the 8,639 who clicked a Braze unsubscribe (3.71% vs 0.30% of the 2,845,735-subscriber mailed cohort).</li><li>Only 322 subscribers did both — a Braze click rarely equals a full opt-out, so the consent signal surfaces exits the Braze view misses.</li><li>78% of full opt-outs (82,674) had a PRE/POST/ENG/DSKT delivery within 90 days and are attributed to a last-touch campaign; the rest are kept as Unattributed.</li><li>PRE appears before 76% of full opt-outs but is the attributed last touch for only 51% — a calendar-frequency signal, same framing as the Braze tab.</li>
+    </ul>
+    <table><thead><tr><th>Signal</th><th>Subscribers</th><th>Rate of cohort</th><th>What it captures</th></tr></thead><tbody><tr><td>Braze unsubscribe click</td><td>8,639</td><td>0.30%</td><td>Clicked unsubscribe on one email</td></tr><tr><td>Derived full email opt-out</td><td>105,594</td><td>3.71%</td><td>Turned all six promo categories off in FY26</td></tr></tbody></table>
+    <p class="note">Both signals use the same 2,845,735-subscriber FY26 mailed cohort. The Braze
+      tab counts unsubscribe clicks; this tab counts full promotional opt-outs from consent history.</p>
+  </div>
+
+  <h2>Full Opt-out Volume &amp; Rate by Code</h2>
+  <div class="card">
+    <table><thead><tr><th>Code</th><th>Delivered</th><th>Attributed Opt-outs</th><th>Attributed / Delivery %</th><th>Braze Unsubs</th><th>Attributed Latest %</th><th>Saw Before Opt-out %</th></tr></thead><tbody><tr><td>PRE (promotional)</td><td>18.2M</td><td>53,835</td><td>0.296</td><td>6,620</td><td>51.0</td><td>76.3</td></tr><tr><td>POST (post-season)</td><td>1.5M</td><td>4,870</td><td>0.331</td><td>0</td><td>4.6</td><td>14.9</td></tr><tr><td>ENG (engagement newsletters)</td><td>7.1M</td><td>31,100</td><td>0.435</td><td>1,707</td><td>29.5</td><td>56.8</td></tr><tr><td>DSKT (desktop offers)</td><td>2.3M</td><td>4,081</td><td>0.179</td><td>4,492</td><td>3.9</td><td>11.2</td></tr></tbody></table>
+    <p class="note">Attributed Opt-outs = full opt-outs whose last-touch delivery was this code.
+      Attributed / Delivery % = attributed opt-outs ÷ delivered subscribers. Braze Unsubs shown for
+      comparison. Latest % and Saw Before % are subscriber-grain and can exceed 100% summed across
+      codes (one journey touches several codes).</p>
+  </div>
+
+  <h2>Which Codes Are in the Path to Full Opt-out?</h2>
+  <div class="card">
+    
+    <div class="chart">
+      <div class="chart-title">Campaign codes in the path to full opt-out</div>
+      <div class="chart-legend"><span class="swatch a"></span>Attributed latest exposure
+        <span class="swatch b"></span>Saw before opt-out</div>
+      <p class="chart-sub">Lighter bar much taller = reduce send frequency even if the last delivery was a different code.</p>
+      
+        <div class="bar-row">
+          <div class="bar-label">PRE</div>
+          <div class="bar-track"><div class="bar a" style="width:66.8%"></div></div>
+          <div class="bar-val">51.0%</div>
+          <div class="bar-track"><div class="bar b" style="width:100.0%"></div></div>
+          <div class="bar-val">76.3%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">POST</div>
+          <div class="bar-track"><div class="bar a" style="width:6.0%"></div></div>
+          <div class="bar-val">4.6%</div>
+          <div class="bar-track"><div class="bar b" style="width:19.6%"></div></div>
+          <div class="bar-val">14.9%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">ENG</div>
+          <div class="bar-track"><div class="bar a" style="width:38.6%"></div></div>
+          <div class="bar-val">29.5%</div>
+          <div class="bar-track"><div class="bar b" style="width:74.5%"></div></div>
+          <div class="bar-val">56.8%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">DSKT</div>
+          <div class="bar-track"><div class="bar a" style="width:5.1%"></div></div>
+          <div class="bar-val">3.9%</div>
+          <div class="bar-track"><div class="bar b" style="width:14.7%"></div></div>
+          <div class="bar-val">11.2%</div>
+        </div>
+    </div>
+    <div class="phase-grid">
+        <div class="phase-card">
+          <h3>Act 1: Welcome <span class="phase-period">Aug–Dec 2025</span></h3>
+          <p>Pre-season nurture — YRE newsletters and desktop warm-up.</p>
+          <p class="phase-stats"><strong>8,601</strong> full opt-outs ·
+            <strong>8%</strong> of total ·
+            <strong>0%</strong> attributed</p>
+        </div>
+        <div class="phase-card">
+          <h3>Act 2: Ramp <span class="phase-period">Jan–Feb 2026</span></h3>
+          <p>Tax season promos begin — HeadStart, NETFILE, Flash Sale.</p>
+          <p class="phase-stats"><strong>15,287</strong> full opt-outs ·
+            <strong>14%</strong> of total ·
+            <strong>82%</strong> attributed</p>
+        </div>
+        <div class="phase-card">
+          <h3>Act 3: Sustain <span class="phase-period">Mar–Apr 2026</span></h3>
+          <p>Mid-season cadence — mixed PRE and engagement mail.</p>
+          <p class="phase-stats"><strong>54,358</strong> full opt-outs ·
+            <strong>51%</strong> of total ·
+            <strong>81%</strong> attributed</p>
+        </div>
+        <div class="phase-card">
+          <h3>Act 4: Exit <span class="phase-period">May–Jul 2026</span></h3>
+          <p>Peak through late season exit window.</p>
+          <p class="phase-stats"><strong>27,348</strong> full opt-outs ·
+            <strong>26%</strong> of total ·
+            <strong>96%</strong> attributed</p>
+        </div></div>
+    <p class="note">When the lighter bar (saw before opt-out) is much taller than the darker bar
+      (attributed last touch), the code drives fatigue even when the final email was something else.</p>
+  </div>
+
+  <h2>Journey Segmentation — Emails Before Full Opt-out</h2>
+  <div class="card">
+    <table><thead><tr><th>Segment</th><th>Full Opt-outs</th><th>% of Opt-outs</th><th>Median Journey Length</th></tr></thead><tbody><tr><td>Short (&lt;=3 sends)</td><td>41,687</td><td>39.5</td><td>1</td></tr><tr><td>Medium (4-9 sends)</td><td>37,762</td><td>35.8</td><td>6</td></tr><tr><td>Long (10+ sends)</td><td>26,145</td><td>24.8</td><td>12</td></tr></tbody></table>
+    <div class="chart"><div class="chart-title">PRE (promotional) — full opt-out rate by emails received</div><div class="bar-row seg"><div class="bar-label">1 <span class="ex-eng">(256,566 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:41.7%"></div></div><div class="bar-val">2.79%</div></div><div class="bar-row seg"><div class="bar-label">2 <span class="ex-eng">(219,561 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:60.6%"></div></div><div class="bar-val">4.06%</div></div><div class="bar-row seg"><div class="bar-label">3 <span class="ex-eng">(115,874 subscribers)</span></div><div class="bar-track"><div class="bar a" style="width:100.0%"></div></div><div class="bar-val">6.70%</div></div><div class="bar-row seg"><div class="bar-label">4 <span class="ex-eng">(183,773 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:81.1%"></div></div><div class="bar-val">5.43%</div></div><div class="bar-row seg"><div class="bar-label">5 <span class="ex-eng">(230,103 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:53.6%"></div></div><div class="bar-val">3.59%</div></div><div class="bar-row seg"><div class="bar-label">6 <span class="ex-eng">(238,677 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:41.8%"></div></div><div class="bar-val">2.80%</div></div><div class="bar-row seg"><div class="bar-label">7 <span class="ex-eng">(147,398 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:50.7%"></div></div><div class="bar-val">3.40%</div></div><div class="bar-row seg"><div class="bar-label">8 <span class="ex-eng">(166,468 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:50.9%"></div></div><div class="bar-val">3.41%</div></div><div class="bar-row seg"><div class="bar-label">9 <span class="ex-eng">(316,662 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:30.9%"></div></div><div class="bar-val">2.07%</div></div><div class="bar-row seg"><div class="bar-label">10 <span class="ex-eng">(176,366 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:35.2%"></div></div><div class="bar-val">2.35%</div></div><div class="bar-row seg"><div class="bar-label">11 <span class="ex-eng">(115,439 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:35.7%"></div></div><div class="bar-val">2.39%</div></div><div class="bar-row seg"><div class="bar-label">12 <span class="ex-eng">(118,715 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:28.2%"></div></div><div class="bar-val">1.89%</div></div><div class="bar-row seg"><div class="bar-label">13 <span class="ex-eng">(87,584 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:27.9%"></div></div><div class="bar-val">1.87%</div></div><div class="bar-row seg"><div class="bar-label">14 <span class="ex-eng">(38,805 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:35.2%"></div></div><div class="bar-val">2.36%</div></div><div class="bar-row seg"><div class="bar-label">15 <span class="ex-eng">(30,991 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:38.3%"></div></div><div class="bar-val">2.56%</div></div><div class="bar-row seg"><div class="bar-label">16 <span class="ex-eng">(21,613 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:39.3%"></div></div><div class="bar-val">2.63%</div></div><div class="bar-row seg"><div class="bar-label">17 <span class="ex-eng">(28,031 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:26.8%"></div></div><div class="bar-val">1.80%</div></div><div class="bar-row seg"><div class="bar-label">18 <span class="ex-eng">(25,503 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:19.7%"></div></div><div class="bar-val">1.32%</div></div><div class="bar-row seg"><div class="bar-label">19 <span class="ex-eng">(9,251 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:26.6%"></div></div><div class="bar-val">1.78%</div></div><div class="bar-row seg"><div class="bar-label">20 <span class="ex-eng">(6,799 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:25.3%"></div></div><div class="bar-val">1.69%</div></div><div class="bar-row seg"><div class="bar-label">21 <span class="ex-eng">(6,258 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:26.0%"></div></div><div class="bar-val">1.74%</div></div><div class="bar-row seg"><div class="bar-label">22 <span class="ex-eng">(5,175 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:24.8%"></div></div><div class="bar-val">1.66%</div></div><div class="bar-row seg"><div class="bar-label">23 <span class="ex-eng">(3,209 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:24.2%"></div></div><div class="bar-val">1.62%</div></div><div class="bar-row seg"><div class="bar-label">24 <span class="ex-eng">(1,657 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:35.1%"></div></div><div class="bar-val">2.35%</div></div><div class="bar-row seg"><div class="bar-label">25 <span class="ex-eng">(1,647 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:27.2%"></div></div><div class="bar-val">1.82%</div></div><div class="bar-row seg"><div class="bar-label">26 <span class="ex-eng">(1,634 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:12.8%"></div></div><div class="bar-val">0.86%</div></div><div class="bar-row seg"><div class="bar-label">27 <span class="ex-eng">(667 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:26.9%"></div></div><div class="bar-val">1.80%</div></div><div class="bar-row seg"><div class="bar-label">28 <span class="ex-eng">(293 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:20.4%"></div></div><div class="bar-val">1.37%</div></div><div class="bar-row seg"><div class="bar-label">29 <span class="ex-eng">(207 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:21.6%"></div></div><div class="bar-val">1.45%</div></div><div class="bar-row seg"><div class="bar-label">30 <span class="ex-eng">(99 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">31 <span class="ex-eng">(61 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:24.5%"></div></div><div class="bar-val">1.64%</div></div><div class="bar-row seg"><div class="bar-label">32 <span class="ex-eng">(48 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">33 <span class="ex-eng">(30 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:99.5%"></div></div><div class="bar-val">6.67%</div></div><div class="bar-row seg"><div class="bar-label">34 <span class="ex-eng">(19 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:78.6%"></div></div><div class="bar-val">5.26%</div></div><div class="bar-row seg"><div class="bar-label">35 <span class="ex-eng">(24 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:62.2%"></div></div><div class="bar-val">4.17%</div></div><div class="bar-row seg"><div class="bar-label">36 <span class="ex-eng">(13 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">37 <span class="ex-eng">(10 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">38 <span class="ex-eng">(8 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">39 <span class="ex-eng">(3 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">40 <span class="ex-eng">(4 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">41 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">42 <span class="ex-eng">(2 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">43 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">44 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">45 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">46 <span class="ex-eng">(2 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">47 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">49 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">52 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">76 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div></div><div class="chart"><div class="chart-title">POST (post-season) — full opt-out rate by emails received</div><div class="bar-row seg"><div class="bar-label">1 <span class="ex-eng">(209,993 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:87.4%"></div></div><div class="bar-val">2.62%</div></div><div class="bar-row seg"><div class="bar-label">2 <span class="ex-eng">(194,565 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:86.3%"></div></div><div class="bar-val">2.59%</div></div><div class="bar-row seg"><div class="bar-label">3 <span class="ex-eng">(80,405 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:99.4%"></div></div><div class="bar-val">2.98%</div></div><div class="bar-row seg"><div class="bar-label">4 <span class="ex-eng">(127,081 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:62.7%"></div></div><div class="bar-val">1.88%</div></div><div class="bar-row seg"><div class="bar-label">5 <span class="ex-eng">(7,280 subscribers)</span></div><div class="bar-track"><div class="bar a" style="width:100.0%"></div></div><div class="bar-val">2.99%</div></div><div class="bar-row seg"><div class="bar-label">6 <span class="ex-eng">(15,096 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:53.1%"></div></div><div class="bar-val">1.59%</div></div><div class="bar-row seg"><div class="bar-label">7 <span class="ex-eng">(100 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:66.8%"></div></div><div class="bar-val">2.00%</div></div><div class="bar-row seg"><div class="bar-label">8 <span class="ex-eng">(64 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:52.2%"></div></div><div class="bar-val">1.56%</div></div><div class="bar-row seg"><div class="bar-label">9 <span class="ex-eng">(4 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">10 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">12 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div></div><div class="chart"><div class="chart-title">ENG (engagement newsletters) — full opt-out rate by emails received</div><div class="bar-row seg"><div class="bar-label">1 <span class="ex-eng">(258,541 subscribers)</span></div><div class="bar-track"><div class="bar a" style="width:100.0%"></div></div><div class="bar-val">7.78%</div></div><div class="bar-row seg"><div class="bar-label">2 <span class="ex-eng">(414,044 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:69.5%"></div></div><div class="bar-val">5.41%</div></div><div class="bar-row seg"><div class="bar-label">3 <span class="ex-eng">(446,647 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:33.0%"></div></div><div class="bar-val">2.57%</div></div><div class="bar-row seg"><div class="bar-label">4 <span class="ex-eng">(661,471 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:9.3%"></div></div><div class="bar-val">0.73%</div></div><div class="bar-row seg"><div class="bar-label">5 <span class="ex-eng">(340,314 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:3.5%"></div></div><div class="bar-val">0.27%</div></div><div class="bar-row seg"><div class="bar-label">6 <span class="ex-eng">(28,373 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:8.1%"></div></div><div class="bar-val">0.63%</div></div><div class="bar-row seg"><div class="bar-label">7 <span class="ex-eng">(19,748 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:4.9%"></div></div><div class="bar-val">0.38%</div></div><div class="bar-row seg"><div class="bar-label">8 <span class="ex-eng">(8,885 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:2.7%"></div></div><div class="bar-val">0.21%</div></div><div class="bar-row seg"><div class="bar-label">9 <span class="ex-eng">(1,817 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:2.8%"></div></div><div class="bar-val">0.22%</div></div><div class="bar-row seg"><div class="bar-label">10 <span class="ex-eng">(132 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">11 <span class="ex-eng">(32 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">12 <span class="ex-eng">(11 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">13 <span class="ex-eng">(7 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">14 <span class="ex-eng">(4 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">15 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div><div class="bar-row seg"><div class="bar-label">18 <span class="ex-eng">(1 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:0.0%"></div></div><div class="bar-val">0.00%</div></div></div><div class="chart"><div class="chart-title">DSKT (desktop offers) — full opt-out rate by emails received</div><div class="bar-row seg"><div class="bar-label">1 <span class="ex-eng">(53,443 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:88.9%"></div></div><div class="bar-val">3.11%</div></div><div class="bar-row seg"><div class="bar-label">2 <span class="ex-eng">(112,743 subscribers)</span></div><div class="bar-track"><div class="bar a" style="width:100.0%"></div></div><div class="bar-val">3.50%</div></div><div class="bar-row seg"><div class="bar-label">3 <span class="ex-eng">(49,100 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:77.2%"></div></div><div class="bar-val">2.70%</div></div><div class="bar-row seg"><div class="bar-label">4 <span class="ex-eng">(49,892 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:79.6%"></div></div><div class="bar-val">2.78%</div></div><div class="bar-row seg"><div class="bar-label">5 <span class="ex-eng">(71,146 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:59.5%"></div></div><div class="bar-val">2.08%</div></div><div class="bar-row seg"><div class="bar-label">6 <span class="ex-eng">(108,751 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:21.9%"></div></div><div class="bar-val">0.77%</div></div><div class="bar-row seg"><div class="bar-label">7 <span class="ex-eng">(30,896 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:51.6%"></div></div><div class="bar-val">1.80%</div></div><div class="bar-row seg"><div class="bar-label">8 <span class="ex-eng">(55,039 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:31.8%"></div></div><div class="bar-val">1.11%</div></div><div class="bar-row seg"><div class="bar-label">9 <span class="ex-eng">(1,040 subscribers)</span></div><div class="bar-track"><div class="bar b" style="width:22.0%"></div></div><div class="bar-val">0.77%</div></div></div>
+    <p class="note">Rate = full opt-outs ÷ subscribers who received N emails from that code. Denominators
+      match the Braze tab cohort so the two rates are directly comparable per bucket.</p>
+  </div>
+
+  <h2>Top Campaigns Before Full Opt-out (Attributed Last Touch)</h2>
+  <div class="card">
+    <table><thead><tr><th>TT Code</th><th>Campaign</th><th>Codes</th><th>Attributed Opt-outs</th><th>% of Attributed</th><th>Attributed / Delivery %</th></tr></thead><tbody><tr><td>TT230354</td><td>May-YRE-MayNewsletter-Content&amp;Newsletter-NA-W1-TT230354</td><td>ENG</td><td>5,381</td><td>6.5</td><td>1.209</td></tr><tr><td>TT230354</td><td>May-YRE-MayNewsletter-Content&amp;Newsletter-NA-W1-TT230354</td><td>ENG</td><td>5,192</td><td>6.3</td><td>1.164</td></tr><tr><td>TT815363</td><td>April-PRE-AprilNewsletter-Content&amp;Newsletter-NA-W1-TT81</td><td>PRE,ENG</td><td>4,435</td><td>5.4</td><td>0.383</td></tr><tr><td>TT167397</td><td>April-PRE-BestOfferTTOV2-Offers&amp;Promotions-NA-W2-TT1673</td><td>PRE</td><td>3,427</td><td>4.1</td><td>0.864</td></tr><tr><td>TT923137</td><td>March-YRE-MarchNewsletter-Content&amp;Newsletter-NA-OTS-TT9</td><td>ENG</td><td>2,900</td><td>3.5</td><td>0.358</td></tr><tr><td>TT923137</td><td>March-YRE-MarchNewsletter-Content&amp;Newsletter-NA-OTS-TT9</td><td>ENG</td><td>2,648</td><td>3.2</td><td>0.327</td></tr><tr><td>TT853353</td><td>January-PRE-WrapUp-Product-NA-W1&amp;W2-TT853353</td><td>PRE</td><td>2,513</td><td>3.0</td><td>0.246</td></tr><tr><td>TT853353</td><td>January-PRE-WrapUp-Product-NA-W1&amp;W2-TT853353</td><td>PRE</td><td>2,116</td><td>2.6</td><td>0.290</td></tr><tr><td>TT815363</td><td>April-PRE-AprilNewsletter-Content&amp;Newsletter-NA-W1-TT81</td><td>PRE,ENG</td><td>2,088</td><td>2.5</td><td>0.562</td></tr><tr><td>TT982869</td><td>March-PRE-NETFILE-Offers&amp;Promotions-TTO-W3&amp;W4-TT982869</td><td>PRE</td><td>1,899</td><td>2.3</td><td>0.430</td></tr><tr><td>TT912412</td><td>TRG-FY26-March-YRE-PostFile-Product&amp;Transactional-NA-OT</td><td>ENG</td><td>1,880</td><td>2.3</td><td>0.314</td></tr><tr><td>TT449053</td><td>January-PRE-HeadStart-Product-NA-W1-TT449053</td><td>PRE</td><td>1,818</td><td>2.2</td><td>0.178</td></tr><tr><td>TT982869</td><td>February-PRE-NETFILE-Offers&amp;Promotions-NA-W1-TT982869</td><td>PRE</td><td>1,766</td><td>2.1</td><td>0.360</td></tr><tr><td>TT445092</td><td>March-PRE-FlashSale-Offers&amp;Promotions-NA-W1&amp;W2-TT445092</td><td>PRE</td><td>1,725</td><td>2.1</td><td>0.418</td></tr><tr><td>TT982869</td><td>March-PRE-NETFILE-Offers&amp;Promotions-TTO-W3&amp;W4-TT982869</td><td>PRE</td><td>1,648</td><td>2.0</td><td>0.477</td></tr></tbody></table>
+    <p class="note">Ranked by attributed full opt-outs (last delivery within 90 days). Inferred
+      exposure, not proven cause.</p>
+  </div>
+
+  <h2>Appendix — Consent Draft Methodology &amp; Diagnostics</h2>
+  
+<details class="appendix">
+  <summary>Appendix: Attribution coverage &amp; sensitivity</summary>
+  <div class="appendix-body"><ul class="summary">
+      <li>Exact FY26 full opt-outs: <strong>105,594</strong>
+        (attributed 82,674 / unattributed 22,920).</li>
+      <li>Attribution coverage: <strong>78.3%</strong>
+        within the 90-day window.</li>
+      <li>Lookback sensitivity: 68.1% within 30 days ·
+        76.4% within 60 days ·
+        78.3% within 90 days.</li>
+      <li>Delivery-to-opt-out lag: median 4 days ·
+        p90 36 days.</li>
+      <li>Braze / consent overlap: 322 subscribers
+        (3.7% of Braze unsubscribers).</li>
+      <li>Integrity checks: 0 post-opt-out leakage rows ·
+        0 outside-90-day rows ·
+        0 duplicate subscribers.</li>
+    </ul></div>
+</details>
+  
+<details class="appendix">
+  <summary>Appendix: Full opt-out by journey length</summary>
+  <div class="appendix-body"><table><thead><tr><th>Journey Length</th><th>Full Opt-outs</th><th>% of Opt-outs</th></tr></thead><tbody><tr><td>1</td><td>28,340</td><td>26.84</td></tr><tr><td>2</td><td>6,794</td><td>6.43</td></tr><tr><td>3</td><td>6,553</td><td>6.21</td></tr><tr><td>4</td><td>7,604</td><td>7.20</td></tr><tr><td>5</td><td>6,964</td><td>6.60</td></tr><tr><td>6</td><td>6,719</td><td>6.36</td></tr><tr><td>7</td><td>5,868</td><td>5.56</td></tr><tr><td>8</td><td>5,321</td><td>5.04</td></tr><tr><td>9</td><td>5,286</td><td>5.01</td></tr><tr><td>10</td><td>6,175</td><td>5.85</td></tr><tr><td>11</td><td>5,352</td><td>5.07</td></tr><tr><td>12</td><td>3,793</td><td>3.59</td></tr><tr><td>13</td><td>2,735</td><td>2.59</td></tr><tr><td>14</td><td>2,267</td><td>2.15</td></tr><tr><td>15</td><td>1,570</td><td>1.49</td></tr><tr><td>16</td><td>1,103</td><td>1.04</td></tr><tr><td>17</td><td>803</td><td>0.76</td></tr><tr><td>18</td><td>654</td><td>0.62</td></tr><tr><td>19</td><td>478</td><td>0.45</td></tr><tr><td>20</td><td>347</td><td>0.33</td></tr><tr><td>21</td><td>202</td><td>0.19</td></tr><tr><td>22</td><td>166</td><td>0.16</td></tr><tr><td>23</td><td>131</td><td>0.12</td></tr><tr><td>24</td><td>121</td><td>0.11</td></tr><tr><td>25</td><td>59</td><td>0.06</td></tr><tr><td>26</td><td>60</td><td>0.06</td></tr><tr><td>27</td><td>44</td><td>0.04</td></tr><tr><td>28</td><td>33</td><td>0.03</td></tr><tr><td>29</td><td>23</td><td>0.02</td></tr><tr><td>30</td><td>15</td><td>0.01</td></tr><tr><td>31</td><td>1</td><td>0.00</td></tr><tr><td>32</td><td>5</td><td>0.00</td></tr><tr><td>33</td><td>2</td><td>0.00</td></tr><tr><td>34</td><td>2</td><td>0.00</td></tr><tr><td>35</td><td>1</td><td>0.00</td></tr><tr><td>36</td><td>1</td><td>0.00</td></tr><tr><td>41</td><td>1</td><td>0.00</td></tr><tr><td>43</td><td>1</td><td>0.00</td></tr></tbody></table></div>
+</details>
+  
+<details class="appendix">
+  <summary>Appendix: Method — how the consent signal is defined</summary>
+  <div class="appendix-body"><ul class="summary">
+      <li><strong>Outcome:</strong> first FY26 timestamp where all six consent categories
+        (product, offer, training, content, survey, partner) are off, reconstructed from
+        <code>tax_stg_ca.stg_catax_email_consent</code> change history. Never uses
+        <code>email_consent_summary</code>.</li>
+      <li><strong>Attribution:</strong> latest PRE/POST/ENG/DSKT <em>delivery</em> strictly before the
+        opt-out and within 90 days (last-touch proxy). No qualifying delivery = Unattributed.</li>
+      <li><strong>Saw before opt-out:</strong> % of full opt-outs who received that code as a send
+        before opting out (journey-frequency, mirrors the Braze tab).</li>
+      <li><strong>Cohort:</strong> subscribers who received a PRE/POST/ENG/DSKT send in FY26 (same
+        denominator as the Braze tab).</li>
+      <li><strong>Not causal:</strong> the attributed campaign is the last email seen, not a proven
+        cause of the opt-out. Use directionally for FY27 calendar planning.</li>
+    </ul></div>
+</details>
+
+  </div>
 
   <p class="note" style="text-align:center;margin-top:32px">
     TurboTax Canada · Analytics · <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">FY26 Unsubscribe Dashboard</a>
   </p>
 </div>
+<script>
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var target = btn.getAttribute('data-tab');
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>
 </body>
 </html>
