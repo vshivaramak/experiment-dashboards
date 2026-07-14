@@ -99,19 +99,39 @@
     padding: 1px 7px; border-radius: 10px; font-size: 0.68rem; font-weight: 700; margin-left: 6px; }
   .callout.draft-callout { background: #fff8ec; border-left-color: var(--review); }
   .callout.draft-callout strong { color: var(--review); }
+  .recon-funnel { margin: 8px 0; }
+  .recon-step { margin-bottom: 14px; }
+  .recon-step-head { display: flex; align-items: baseline; gap: 8px; font-size: 0.85rem; margin-bottom: 4px; }
+  .recon-step-label { font-weight: 600; flex: 1; }
+  .recon-step-run { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text); }
+  .recon-step-note { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+  .recon-delta { font-size: 0.75rem; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+  .recon-delta.down { background: #ffebee; color: var(--act); }
+  .recon-delta.up { background: #e8f5e9; color: var(--accent); }
+  .recon-delta.start { background: #eceff1; color: var(--monitor); }
+  .recon-venn-bar { display: flex; height: 34px; border-radius: 6px; overflow: hidden; margin: 12px 0 4px; }
+  .recon-venn-seg { height: 100%; min-width: 2px; }
+  .recon-venn-seg.seg-braze { background: var(--bar-a); }
+  .recon-venn-seg.seg-both { background: var(--act); }
+  .recon-venn-seg.seg-consent { background: var(--bar-b); }
+  .recon-stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .recon-stat { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #fafbfc; text-align: center; }
+  .recon-stat-n { font-size: 1.3rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .recon-stat-l { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-13 21:38 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-14 16:02 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="tab-braze">Braze Analysis</button>
     <button class="tab-btn" data-tab="tab-consent">Email Consent Draft<span class="draft-badge">DRAFT</span></button>
+    <button class="tab-btn" data-tab="tab-recon">Signal Reconciliation</button>
   </div>
 
   <div id="tab-braze" class="tab-content active">
@@ -516,7 +536,12 @@
     </ul>
     <table><thead><tr><th>Signal</th><th>Subscribers</th><th>Rate of cohort</th><th>What it captures</th></tr></thead><tbody><tr><td>Braze unsubscribe click</td><td>8,607</td><td>0.30%</td><td>Clicked unsubscribe on one email</td></tr><tr><td>Derived full promotional opt-out</td><td>105,594</td><td>3.71%</td><td>Transitioned to all six promotional categories off in FY26</td></tr></tbody></table>
     <p class="note">Both signals use the same 2,845,735-subscriber FY26 mailed cohort. The Braze
-      tab counts unsubscribe clicks; this tab counts full promotional opt-outs from consent history.</p>
+      tab counts unsubscribe clicks; this tab counts full promotional opt-outs from consent history.
+      The 8,607 Braze figure here is the <strong>tagged-cohort subset</strong> of Tab 1's
+      11,733 FY26 Braze unsubscribers (3,126 unsubscribed via untagged
+      mail or email-key/email-string grain); the full step-by-step reconciliation is on the
+      <strong>Signal Reconciliation</strong> tab. This opt-out count is the FY26-window transition
+      figure (Mode B), not the larger current-state snapshot (Mode A) — see the Method appendix.</p>
   </div>
 
   <h2>How These Numbers Were Derived</h2>
@@ -609,6 +634,40 @@
     <p class="note">When the lighter bar (saw before opt-out) is much taller than the darker bar
       (attributed last touch), that is a directional calendar-frequency signal; it does not prove causation.</p>
   </div>
+  
+  <h2>Partial vs Full Opt-out — Do They Behave Differently?</h2>
+  <div class="card">
+    <p>The small Braze-vs-consent overlap is not noise — it is two different
+      behaviors. Splitting the mailed cohort by <em>how many</em> of the six
+      consent categories are off separates them cleanly:</p>
+    <table><thead><tr><th>Consent state</th><th>Subscribers</th><th>% of cohort</th><th>Braze-click rate</th><th>Median tagged sends</th><th>Opened any</th><th>Behavior (first principles)</th></tr></thead><tbody><tr><td><strong>Fully subscribed (0 off)</strong></td><td>2,533,919</td><td>89.04%</td><td>0.25%</td><td>15</td><td>76%</td><td>Baseline — still receiving all promo streams</td></tr><tr><td><strong>Partially opted out (1-5 off)</strong></td><td>42,879</td><td>1.51%</td><td>1.82%</td><td>12</td><td>89%</td><td>Surgical / relevance-driven — turned off some streams, kept others; where most Braze email clicks land</td></tr><tr><td><strong>Fully opted out (6 off)</strong></td><td>269,115</td><td>9.46%</td><td>0.56%</td><td>2</td><td>71%</td><td>Wholesale exit — quick, low-engagement; mostly non-Braze paths (preference center / GPC / global)</td></tr></tbody></table>
+    
+    <ul class="summary">
+      <li><strong>Partial = surgical / relevance-driven, and this is where Braze
+        clicks concentrate.</strong> The partial bucket's Braze-click rate is
+        <strong>3.2× the fully-opted-out rate</strong> and
+        7.3× the fully-subscribed rate — plus the highest engagement
+        of any bucket. People trim one stream (usually <code>offer</code>) and
+        stay; 6,308 Braze clickers didn't even
+        turn off a single category.</li>
+      <li><strong>Full = quick, low-engagement wholesale exit.</strong> Median of
+        only 2 tagged sends before leaving
+        (vs 12 for partial) and the lowest
+        open rate — a fast "stop all promo" decision through preference-center /
+        global paths, not a single-email click. Only 322
+        (3.7% of Braze clickers) appear in both.</li>
+    </ul>
+    <p class="note"><strong>So:</strong> partial opt-outs are category-targeted and
+      Braze-correlated; full opt-outs are quick, low-engagement, and mostly
+      non-Braze. That difference in behavior <em>is</em> the mechanism behind the
+      tiny overlap — the two signals measure different things, not the same thing
+      twice. See the Signal Reconciliation tab for the full elimination funnels.</p>
+    <p class="note">Live from <code>prelim_consent_partial_vs_full.sql</code>
+      (current per-category state reconstructed from
+      <code>tax_stg_ca.stg_catax_email_consent</code>; 2,845,913-subscriber
+      FY26 mailed cohort). Braze-click rate = subscribers in the bucket with a FY26
+      Braze unsubscribe ÷ bucket size.</p>
+  </div>
 
   <h2>Journey Segmentation — Emails Before Full Opt-out</h2>
   <div class="card">
@@ -640,7 +699,8 @@
       <li>Delivery-to-opt-out lag: median 4 days ·
         p90 36 days.</li>
       <li>Braze / consent overlap: 322 subscribers
-        (3.7% of Braze unsubscribers).</li>
+        (3.7% of Braze unsubscribers) — this pipeline figure
+        supersedes the earlier read-only exploration estimate of 324 (refined dedup + sha2 email grain).</li>
       <li>Integrity checks: 0 post-opt-out leakage rows ·
         0 outside-90-day rows ·
         0 duplicate subscribers.</li>
@@ -665,10 +725,182 @@
         before opting out (journey-frequency, mirrors the Braze tab).</li>
       <li><strong>Cohort:</strong> subscribers who received a PRE/POST/ENG/DSKT send in FY26 (same
         denominator as the Braze tab).</li>
+      <li><strong>Mode A vs Mode B (definitional lever):</strong> Mode A = all six categories off
+        <em>right now</em> (undated current-state snapshot, ~258,696). Mode B = the first all-six-off
+        <em>transition inside FY26</em> (this tab, {optout_n:,}). We report Mode B because it is
+        window-comparable to the Braze click rate. Never uses <code>email_consent_summary</code>.</li>
+      <li><strong>Braze grain tie-out:</strong> the {braze_n:,} Braze figure is Tab 1's {total_unsubs:,}
+        FY26 unsubscribers restricted to the tagged cohort (−{total_unsubs - int(pd.read_parquet(BASE / "cohort_unsub_emails.parquet")["unsubs"].sum()):,} with no PRE/POST/ENG/DSKT send)
+        then reconciled from email-key to email-string grain. Full funnel on the Signal Reconciliation tab.</li>
       <li><strong>Not causal:</strong> the attributed campaign is the last email seen, not a proven
         cause of the opt-out. Use directionally for FY27 calendar planning.</li>
     </ul></div>
 </details>
+
+  </div>
+
+  <div id="tab-recon" class="tab-content">
+  
+  <div class="callout">
+    <strong>Signal reconciliation.</strong> Tab 1 counts 11,733
+    Braze unsub clicks; Tab 2 counts 105,594 full promotional
+    opt-outs. This tab shows, step by step, how each number is built, why they
+    barely overlap, and which one to use — every identity below is
+    machine-checked (13/13 pass,
+    converged in 2 loop(s)).
+  </div>
+  
+
+  <div class="card">
+    <h2 style="margin-top:0;border:none">Two Signals, Two Source Systems</h2>
+    <table><thead><tr><th>Signal</th><th>Mechanism</th><th>Source lineage</th><th>Grain</th><th>Window</th><th>What it captures</th></tr></thead><tbody><tr><td><strong>Braze unsubscribe click</strong></td><td>Clicked the unsubscribe link on one email</td><td><code>src_braze_tto_ca_email_unsubscribe -&gt; fact_catax_mktg_event (event_type=&#x27;unsubscribe&#x27;)</code></td><td>email / catax_email_key</td><td>FY26 events (Aug 1 2025 - Jul 31 2026)</td><td>One-email / one-category intent (usually partial)</td></tr><tr><td><strong>Derived full promotional opt-out</strong></td><td>All six consent categories turned off</td><td><code>stg_catax_email_consent change history (never email_consent_summary)</code></td><td>email (lower(trim(email_address_str)))</td><td>First all-6-off transition inside FY26</td><td>Full suppression via any path — preference center, GPC token, CSR, global unsubscribe</td></tr></tbody></table>
+    <p class="note">The signals share the 2,845,735-subscriber
+      FY26 mailed cohort as a denominator, but measure different exit mechanisms.</p>
+  </div>
+
+  <h2>Braze Cohort Funnel — 11,733 → 8,607</h2>
+  <div class="card">
+    <div class="recon-funnel">
+        <div class="recon-step">
+          <div class="recon-step-head">
+            <span class="recon-step-label">All FY26 Braze unsubscribes</span>
+            <span class="recon-delta start">start</span>
+            <span class="recon-step-run">11,733</span>
+          </div>
+          <div class="bar-track"><div class="bar a" style="width:100.0%"></div></div>
+          <div class="recon-step-note">Tab 1 headline; email-key grain</div>
+        </div>
+        <div class="recon-step">
+          <div class="recon-step-head">
+            <span class="recon-step-label">No PRE/POST/ENG/DSKT send in FY26</span>
+            <span class="recon-delta down">-3,153</span>
+            <span class="recon-step-run">8,580</span>
+          </div>
+          <div class="bar-track"><div class="bar a" style="width:73.1%"></div></div>
+          <div class="recon-step-note">Left via untagged mail (YRE / survey / churn) or zero sends — excluded by the tagged-cohort filter</div>
+        </div>
+        <div class="recon-step">
+          <div class="recon-step-head">
+            <span class="recon-step-label">Grain: email-key -&gt; email-string</span>
+            <span class="recon-delta up">+27</span>
+            <span class="recon-step-run">8,607</span>
+          </div>
+          <div class="bar-track"><div class="bar a" style="width:73.4%"></div></div>
+          <div class="recon-step-note">Tab 2 dedupes on lower(trim(email)); reconciles the two grains</div>
+        </div></div>
+    <p class="note">How Tab 1's full Braze count reduces to the tagged-cohort
+      figure Tab 2 compares against. The +27 step reconciles email-key vs
+      email-string grain, so Tab 1 and Tab 2 provably tie out.</p>
+    <p class="note"><strong>Where the excluded 3,174 went</strong> (fresh warehouse classification): 1,005 unsubscribed on a YRE newsletter, 1,920 on other untagged mail, and 242 on survey/churn campaigns — none had a PRE/POST/ENG/DSKT send, which is exactly why the tagged-cohort filter drops them.</p>
+  </div>
+
+  <h2>Consent Opt-out Funnel — Mode A → 105,594</h2>
+  <div class="card">
+    <div class="recon-funnel">
+        <div class="recon-step">
+          <div class="recon-step-head">
+            <span class="recon-step-label">Current-state full opt-outs (all 6 off now)</span>
+            <span class="recon-delta start">start</span>
+            <span class="recon-step-run">258,696</span>
+          </div>
+          <div class="bar-track"><div class="bar b" style="width:100.0%"></div></div>
+          <div class="recon-step-note">Mode A snapshot — undated; offline explore constant</div>
+        </div>
+        <div class="recon-step">
+          <div class="recon-step-head">
+            <span class="recon-step-label">First transition inside FY26 window</span>
+            <span class="recon-delta down">-153,102</span>
+            <span class="recon-step-run">105,594</span>
+          </div>
+          <div class="bar-track"><div class="bar b" style="width:40.8%"></div></div>
+          <div class="recon-step-note">Mode B — the FY26-comparable full opt-out figure Tab 2 reports</div>
+        </div></div>
+    <p class="note"><strong>Mode A</strong> = subscribers with all six categories
+      off <em>right now</em> (undated snapshot). <strong>Mode B</strong> = the
+      first all-six-off transition <em>inside FY26</em> — the window-comparable
+      figure Tab 2 reports. Of those, 82,671 are attributed to a
+      last-touch delivery within 90 days and 22,923 are
+      Unattributed.</p>
+  </div>
+
+  <h2>Cross-signal Venn — Why 8,607 and 105,594 Barely Overlap</h2>
+  <div class="card">
+    
+    <div class="recon-venn-bar"><div class="recon-venn-seg seg-braze" style="width:7.275%" title="Braze-only: 8,285"></div><div class="recon-venn-seg seg-both" style="width:0.283%" title="Both: 322"></div><div class="recon-venn-seg seg-consent" style="width:92.442%" title="Consent-only: 105,272"></div></div>
+    <div class="recon-stat-row"><div class="recon-stat"><div class="recon-stat-n">8,285</div><div class="recon-stat-l">Braze-only</div></div><div class="recon-stat"><div class="recon-stat-n">322</div><div class="recon-stat-l">Both</div></div><div class="recon-stat"><div class="recon-stat-n">105,272</div><div class="recon-stat-l">Consent-only</div></div></div>
+    <p class="note">Universe = the shared 8,607-Braze /
+      105,594-opt-out tagged cohort. Overlap is just
+      322; only 96 of them
+      clicked Braze <em>before</em> fully opting out. The two circles are almost
+      disjoint — they capture different behaviors.</p>
+  </div>
+
+  
+    <div class="card">
+      <h2 style="margin-top:0;border:none">Why the overlap is tiny (first principles)</h2>
+      <p>Braze unsub clicks and full promotional opt-outs are two different exit
+        doors. Three forces push their intersection (322 of a
+        113,879-person union) toward zero:</p>
+      <ol class="summary">
+        <li><strong>Intent granularity.</strong> A Braze click is a single-email,
+          single-category action — it usually turns off just the stream that
+          annoyed the person (typically <code>offer</code>), leaving the other 5
+          on. Full opt-out needs all six off, so a click mechanically lands in the
+          <em>partial</em> state, not full.</li>
+        <li><strong>Different exit doors.</strong> Full opt-outs mostly arrive via
+          preference center / GPC token / CSR / global suppression — bulk actions
+          that flip all six at once and emit <em>no</em> Braze email event.</li>
+        <li><strong>Base-rate asymmetry.</strong> 105,594 vs
+          8,607 (~12×). Even under
+          independence the expected overlap is small; because the two are also
+          mechanistically different, the observed 322 is far below
+          even that.</li>
+      </ol>
+      <p class="note">The 96 who clicked Braze
+        <em>before</em> the full opt-out are the only genuine "email click was a
+        step toward total exit" cases; the rest clicked after or independently.</p>
+    </div>
+
+  
+    <div class="callout">
+      <strong>Which signal to use.</strong>
+      <ul class="summary" style="margin-top:8px">
+        <li><strong>Campaign attribution</strong> ("which email drove the exit?")
+          → use <strong>Braze events</strong>.</li>
+        <li><strong>Full suppression / deliverability / treatment side-effect</strong>
+          ("did cadence push people to kill all promo?") → use
+          <strong>consent history</strong>.</li>
+        <li>Never compare the two rates head-to-head
+          (0.30% vs 3.71%) as if they were the same
+          metric — they answer different questions.</li>
+      </ul>
+    </div>
+
+  
+    <div class="card">
+      <h2 style="margin-top:0;border:none">Attribution-window sensitivity</h2>
+      <p>Of the 105,594 full opt-outs, the share with a tracked
+        PRE/POST/ENG/DSKT delivery before the opt-out grows with the lookback:</p>
+      <div class="bar-row seg"><div class="bar-label">30 days</div>
+        <div class="bar-track"><div class="bar b" style="width:68.1%"></div></div>
+        <div class="bar-val">68.1%</div></div>
+      <div class="bar-row seg"><div class="bar-label">60 days</div>
+        <div class="bar-track"><div class="bar b" style="width:76.4%"></div></div>
+        <div class="bar-val">76.4%</div></div>
+      <div class="bar-row seg"><div class="bar-label">90 days</div>
+        <div class="bar-track"><div class="bar a" style="width:78.3%"></div></div>
+        <div class="bar-val">78.3%</div></div>
+      <p class="note">Median delivery-to-opt-out lag 4 days ·
+        p90 36 days. The 90-day window (the Tab 2 default) leaves
+        22% Unattributed.</p>
+    </div>
+
+  <h2>Machine-checked Reconciliation</h2>
+  <div class="card">
+    <h3 style="margin-top:0;border:none">Self-correction loops</h3>
+    <ul class="summary"><li><strong>Loop 1</strong> — fixes applied: [none] → failed: braze_terminal_matches_venn_universe, consent_terminal_matches_full_optouts</li><li><strong>Loop 2</strong> — fixes applied: [grain_align, window_align] → all pass</li></ul>
+    <p class="note">13 / 13 invariants pass. Tab 3 is generated only when every identity reconciles.</p><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_funnel_reconciles</code></td><td>running totals equal cumulative deltas</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>consent_funnel_reconciles</code></td><td>running totals equal cumulative deltas</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_terminal_matches_venn_universe</code></td><td>braze funnel ends at 8,607; venn universe 8,607</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>consent_terminal_matches_full_optouts</code></td><td>consent funnel ends at 105,594; full opt-outs 105,594</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>venn_braze_partition</code></td><td>braze_only + overlap == braze universe</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>venn_consent_partition</code></td><td>consent_only + overlap == opt-out universe</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>venn_union_sums</code></td><td>three disjoint parts sum to the union</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>overlap_within_bounds</code></td><td>overlap cannot exceed either circle</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_before_optout_within_overlap</code></td><td>clicked-before subset is inside the overlap</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>attribution_splits</code></td><td>attributed + unattributed == full opt-outs</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_rate_recalculates</code></td><td>Braze rate == braze / cohort</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>optout_rate_recalculates</code></td><td>opt-out rate == opt-outs / cohort</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>coverage_monotone</code></td><td>68.1 &lt;= 76.4 &lt;= 78.3</td></tr></tbody></table>
+  </div>
 
   </div>
 
