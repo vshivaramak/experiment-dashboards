@@ -118,13 +118,19 @@
   .recon-stat { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #fafbfc; text-align: center; }
   .recon-stat-n { font-size: 1.3rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
   .recon-stat-l { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .recon-sql-hop { margin: 8px 0 12px; }
+  .recon-sql-title { font-weight: 600; font-size: 0.82rem; color: var(--accent); margin-bottom: 4px; }
+  pre.recon-sql { background: #1a1a2e; color: #e2e8f0; padding: 12px 14px; border-radius: 6px;
+    overflow-x: auto; font-size: 0.75rem; line-height: 1.45; margin: 0;
+    font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace; }
+  pre.recon-sql code { background: none; color: inherit; white-space: pre; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-14 16:02 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-14 16:32 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -901,6 +907,58 @@
     <ul class="summary"><li><strong>Loop 1</strong> — fixes applied: [none] → failed: braze_terminal_matches_venn_universe, consent_terminal_matches_full_optouts</li><li><strong>Loop 2</strong> — fixes applied: [grain_align, window_align] → all pass</li></ul>
     <p class="note">13 / 13 invariants pass. Tab 3 is generated only when every identity reconciles.</p><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_funnel_reconciles</code></td><td>running totals equal cumulative deltas</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>consent_funnel_reconciles</code></td><td>running totals equal cumulative deltas</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_terminal_matches_venn_universe</code></td><td>braze funnel ends at 8,607; venn universe 8,607</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>consent_terminal_matches_full_optouts</code></td><td>consent funnel ends at 105,594; full opt-outs 105,594</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>venn_braze_partition</code></td><td>braze_only + overlap == braze universe</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>venn_consent_partition</code></td><td>consent_only + overlap == opt-out universe</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>venn_union_sums</code></td><td>three disjoint parts sum to the union</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>overlap_within_bounds</code></td><td>overlap cannot exceed either circle</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_before_optout_within_overlap</code></td><td>clicked-before subset is inside the overlap</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>attribution_splits</code></td><td>attributed + unattributed == full opt-outs</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>braze_rate_recalculates</code></td><td>Braze rate == braze / cohort</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>optout_rate_recalculates</code></td><td>opt-out rate == opt-outs / cohort</td></tr><tr><td><span class="tier tier-monitor">PASS</span></td><td><code>coverage_monotone</code></td><td>68.1 &lt;= 76.4 &lt;= 78.3</td></tr></tbody></table>
   </div>
+
+  <h2>Data Lineage</h2>
+  <details class="appendix"><summary>Appendix: Data lineage &mdash; how the tables are built &amp; sourced</summary><div class="appendix-body"><p class="note">Layer metadata from the 2026-07-09 schema probe; view join SQL is live <code>SHOW CREATE TABLE</code> output (full text in <code>lineage_ddl.sql</code>), and our-analysis snippets are verbatim from <code>prelim_*.sql</code>.</p><h3 style="margin-top:16px;border:none">Braze unsubscribe click</h3><table><thead><tr><th>Layer</th><th>Table</th><th>Grain</th><th>Partition</th><th>Build &amp; fields</th></tr></thead><tbody><tr><td><strong>Source (raw)</strong></td><td><code>tax_src_ca.src_braze_tto_ca_email_unsubscribe</code></td><td>One raw Braze unsubscribe export row</td><td><code>date</code></td><td>Raw Braze export landed in the data lake (24 cols).<br/><span class='ex-eng'>Dropped downstream: dispatch_id, timezone, message_variation_id/name, canvas fields, send_id, ip_pool</span></td></tr><tr><td><strong>Mart (fact)</strong></td><td><code>tax_dm_ca.fact_catax_mktg_event</code></td><td>One marketing event (send / delivery / open / click / unsubscribe)</td><td><code>tax_season_year_nbr</code></td><td>Platform ETL conforms raw Braze events into an event fact (PARQUET on S3), keyed to dim_catax_email, dim_catax_mktg_campaign and dim_catax_user_account. Populated by an upstream job — no view SQL; DDL shown.<br/><span class='ex-eng'>13 cols incl. mktg_event_type_str, mktg_event_datetime, catax_email_key, catax_mktg_campaign_key</span></td></tr><tr><td><strong>Report (view)</strong></td><td><code>tax_rpt_ca.v_rpt_email_marketing_events</code></td><td>One marketing event + campaign names</td><td><code>(inherits fact)</code></td><td>View: fact left-joined to the campaign dimension to attach campaign_name / campaign_step_name.<br/><span class='ex-eng'>Adds campaign_name, campaign_step_name</span></td></tr><tr><td><strong>Our analysis</strong></td><td><code>prelim_rates.sql / prelim_*.sql</code></td><td>Distinct catax_email_key (then lower(trim(email)))</td><td><code>FY26 window filter</code></td><td>Join fact to the campaign dim, restrict to FY26, tag PRE/POST/ENG/DSKT, then count distinct unsubscribers.<br/><span class='ex-eng'>Produces the 11,733 -&gt; 8,607 Braze funnel</span></td></tr></tbody></table><p class="note" style="margin-top:12px"><strong>How each table is built (join SQL per hop):</strong></p><div class="recon-sql-hop"><div class="recon-sql-title">&rarr; tax_dm_ca.fact_catax_mktg_event</div><pre class="recon-sql"><code>CREATE TABLE tax_dm_ca.fact_catax_mktg_event (
+  catax_mktg_event_key STRING, source_system_key STRING,
+  catax_mktg_campaign_key STRING, catax_user_account_key STRING,
+  catax_email_key STRING, mktg_event_id STRING,
+  mktg_event_type_str STRING, mktg_user_id STRING,
+  mktg_external_user_id STRING, mktg_event_datetime STRING,
+  dwh_creation_time TIMESTAMP, dwh_update_time TIMESTAMP,
+  tax_season_year_nbr INT)
+USING PARQUET PARTITIONED BY (tax_season_year_nbr);
+-- rows populated by the upstream Braze ingestion job</code></pre></div><div class="recon-sql-hop"><div class="recon-sql-title">&rarr; tax_rpt_ca.v_rpt_email_marketing_events</div><pre class="recon-sql"><code>CREATE VIEW tax_rpt_ca.v_rpt_email_marketing_events AS
+select a.*, b.campaign_name, b.campaign_step_name
+from tax_dm_ca.fact_catax_mktg_event a
+left join tax_dm_ca.dim_catax_mktg_campaign b
+  on a.catax_mktg_campaign_key = b.catax_mktg_campaign_key</code></pre></div><div class="recon-sql-hop"><div class="recon-sql-title">&rarr; prelim_rates.sql / prelim_*.sql</div><pre class="recon-sql"><code>FROM tax_dm_ca.fact_catax_mktg_event e
+JOIN tax_dm_ca.dim_catax_mktg_campaign c
+  ON e.catax_mktg_campaign_key = c.catax_mktg_campaign_key
+WHERE e.tax_season_year_nbr IN (2024, 2025)
+  AND cast(e.mktg_event_datetime AS date)
+      BETWEEN date &#x27;2025-08-01&#x27; AND date &#x27;2026-07-31&#x27;
+-- unsubs = count(DISTINCT CASE WHEN lower(mktg_event_type_str)
+--            = &#x27;unsubscribe&#x27; THEN catax_email_key END)</code></pre></div><h3 style="margin-top:16px;border:none">Derived full promotional opt-out</h3><table><thead><tr><th>Layer</th><th>Table</th><th>Grain</th><th>Partition</th><th>Build &amp; fields</th></tr></thead><tbody><tr><td><strong>Source (history)</strong></td><td><code>tax_stg_ca.stg_catax_email_consent</code></td><td>Consent snapshot rows; per-category true/false datetimes</td><td><code>load_date</code></td><td>Change history of per-category consent (product, offer, training, content, survey, partner) with true/false timestamps. This is the working source for our analysis.<br/><span class='ex-eng'>12 per-category *_true_datetime / *_false_datetime + email_address_str</span></td></tr><tr><td><strong>Identity + GPC</strong></td><td><code>tax_dm_ca.dim_catax_email  +  common_dm.gpc_unsub_tokens</code></td><td>One row per email address</td><td><code>n/a</code></td><td>dim_catax_email supplies catax_email_key / email identity; gpc_unsub_tokens is only a GPC preference-center token bridge (no categories). Richer GPC content table unknown.<br/><span class='ex-eng'>dim: catax_email_key, email_address_str, email_external_id; gpc: email_address, unsub_token, ingest_date</span></td></tr><tr><td><strong>Mart (view)</strong></td><td><code>tax_dm_ca.v_email_consent</code></td><td>One row per email (current-state)</td><td><code>n/a</code></td><td>View: MAX(false/true) per category per email (consent_stg) -&gt; category off if false &gt; true (consent_stg2) -&gt; email_consent_summary from the sum of category indicators -&gt; dim_catax_email LEFT JOIN gpc LEFT JOIN consent. We BYPASS this view (and email_consent_summary); this role also lacks SELECT on it.<br/><span class='ex-eng'>6 category flags + email_consent_summary (All Subscribed / Partially Subscribed / All Unsubscribed)</span></td></tr><tr><td><strong>Our analysis</strong></td><td><code>prelim_consent_attribution.sql / prelim_consent_partial_vs_full.sql</code></td><td>One row per email (event-time state or current state)</td><td><code>FY26 window</code></td><td>We rebuild category state directly from stg (same MAX false/true, off-if-false&gt;true rule the view uses) — never email_consent_summary. Attribution: unpivot to a change timeline, carry running state, take the first all-6-off transition inside FY26 (Mode B, 105,594). Partial-vs-full: current-state category count per email (Mode A).<br/><span class='ex-eng'>Produces 105,594 full opt-outs + the partial/full buckets</span></td></tr></tbody></table><p class="note" style="margin-top:12px"><strong>How each table is built (join SQL per hop):</strong></p><div class="recon-sql-hop"><div class="recon-sql-title">&rarr; tax_dm_ca.v_email_consent</div><pre class="recon-sql"><code>CREATE VIEW tax_dm_ca.v_email_consent AS
+WITH consent_stg AS (
+  SELECT email_address_str,
+         MAX(consent_product_false_datetime) AS product_f,
+         MAX(consent_product_true_datetime)  AS product_t, ...
+  FROM tax_stg_ca.stg_catax_email_consent GROUP BY email_address_str),
+consent_stg2 AS (  -- category off if false &gt; true
+  SELECT ..., CASE WHEN COALESCE(product_f,&#x27;1900-01-01&#x27;)
+               &gt; COALESCE(product_t,&#x27;1900-01-01&#x27;)
+               THEN &#x27;Unsubscribed&#x27; ELSE &#x27;Subscribed&#x27; END ...)
+SELECT dce.catax_email_key, dce.email_address_str AS email,
+       gpc.unsub_token AS gpc_unsub_token, consent.*
+FROM tax_dm_ca.dim_catax_email dce
+LEFT JOIN common_dm.gpc_unsub_tokens gpc
+  ON gpc.email_address = dce.email_address_str
+LEFT JOIN consent ON consent.email_address_str = dce.email_address_str
+-- full DDL in lineage_ddl.sql</code></pre></div><div class="recon-sql-hop"><div class="recon-sql-title">&rarr; prelim_consent_attribution.sql / prelim_consent_partial_vs_full.sql</div><pre class="recon-sql"><code>-- prelim_consent_attribution.sql (event-time state)
+FROM tax_stg_ca.stg_catax_email_consent s
+JOIN prelim_emails p ON lower(trim(s.email_address_str)) = p.email
+LATERAL VIEW stack(12,
+  &#x27;product&#x27;, to_timestamp(s.consent_product_false_datetime), 0,
+  &#x27;product&#x27;, to_timestamp(s.consent_product_true_datetime),  1, ...)
+  change AS category, change_dt, new_state
+-- running state via last_value() over (partition by email
+--   order by change_dt); first row where categories_off = 6
+--   and categories_off_before &lt; 6, inside the FY26 window.
+
+-- prelim_consent_partial_vs_full.sql (current state)
+-- off if max(false) IS NOT NULL AND (max(true) IS NULL
+--   OR max(false) &gt; max(true)); bucket by count of categories off</code></pre></div></div></details>
 
   </div>
 
