@@ -172,7 +172,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-15 17:58 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-15 18:18 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -1023,9 +1023,10 @@ LATERAL VIEW stack(12,
       <label>Phase<select id="t4-phase"><option>All</option></select></label>
       <button id="t4-reset" type="button">Reset</button>
     </div>
-    <p class="note">These filters drive the headline, phases and campaign deep-dive. Volume uses event date;
-      Unsubs use opt-out date. Segment cuts live in the Subscription Base (own filters), the Segment Insight,
-      and Frequency sections. Cells under 10 are suppressed.</p>
+    <p class="note">The date range + phase drive the headline snapshot and the Season cards (volume by event date,
+      Unsubs by opt-out date). The Campaign Deep-Dive is scoped by phase (not the date range) to keep each
+      campaign's unsub counts accurate. Segment cuts live in the Subscription Base, Segment Insight, and
+      Frequency sections (own selectors). Cells under 10 are suppressed.</p>
   </div>
 
   <h2>FY26 Email Volume - Headline Snapshot</h2>
@@ -1918,7 +1919,7 @@ LEFT JOIN profile pr ON cohort.email = pr.email
   function dateIn(dt){const s=val('t4-start'),e=val('t4-end');return (!s||dt>=s)&&(!e||dt<=e);}
   function phaseIn(p){const f=val('t4-phase');return f==='All'||p===f;}
 
-  // --- Headline volume (date+phase) + Unsubs (date+phase) ---
+  // --- Headline volume + Unsubs (both date+phase filtered) ---
   function renderHeadline(){
     const full=dates.length&&val('t4-start')===dates[0]&&val('t4-end')===dates[dates.length-1]&&val('t4-phase')==='All';
     const v=T.daily.filter(r=>dateIn(r.event_date)&&phaseIn(r.phase));
@@ -1930,17 +1931,22 @@ LEFT JOIN profile pr ON cohort.email = pr.email
     $('t4-or').textContent=pct(op,del);$('t4-clicked').textContent=nfmt(cl);$('t4-ctor').textContent=pct(cl,op);
     $('t4-unsubs').textContent=(ex.sup&&!full)?'Suppressed':nfmt(un);$('t4-unsub-open').textContent=pct(un,op);
   }
+  // --- Season View: rich, date-filtered per-phase cards ---
   function renderPhases(){
     $('t4-phase-cards').innerHTML=['Pre-Season','Season','Post-Season'].map(p=>{
-      const op=sum(T.daily.filter(r=>r.phase===p),'opened');
-      const ux=sumSup(T.exitsByDate.filter(r=>r.phase===p),'unsubs');
+      const dv=T.daily.filter(r=>r.phase===p&&dateIn(r.event_date));
+      const sent=sum(dv,'sent'),del=sum(dv,'delivered'),op=sum(dv,'opened'),cl=sum(dv,'clicked');
+      const ux=sumSup(T.exitsByDate.filter(r=>r.phase===p&&dateIn(r.exit_date)),'unsubs');
+      const uv=ux.sup?null:ux.v;
       const range=p==='Pre-Season'?'Nov 1 \u2013 Feb 22':p==='Season'?'Feb 23 \u2013 Apr 30':'May 1 \u2013 Oct 31';
       return `<div class="phase-card"><h3>${p} <span class="phase-period">${range}</span></h3>
-        <p class="phase-stats"><strong>${nfmt(op)}</strong> opened \u00b7 <strong>${ux.sup?'Suppressed':nfmt(ux.v)}</strong> unsubs</p>
-        <p class="phase-stats phase-funnel">${pct(ux.sup?null:ux.v,op)} unsub/open</p></div>`;
+        <p class="phase-stats"><strong>${nfmt(sent)}</strong> sent \u00b7 <strong>${nfmt(del)}</strong> delivered \u00b7
+        <strong>${nfmt(op)}</strong> opened \u00b7 <strong>${nfmt(cl)}</strong> clicked</p>
+        <p class="phase-stats phase-funnel">${pct(op,del)} OR \u00b7 ${pct(cl,op)} CTOR \u00b7
+        <strong>${uv==null?'Suppressed':nfmt(uv)}</strong> unsubs \u00b7 ${pct(uv,op)} unsub/open</p></div>`;
     }).join('');
   }
-  // --- Campaign deep-dive (phase filter) ---
+  // --- Campaign deep-dive (phase-scoped; date range does not narrow it) ---
   function renderCampaigns(){
     const opens={},uns={};
     T.daily.filter(r=>phaseIn(r.phase)).forEach(r=>{opens[r.campaign_name]=(opens[r.campaign_name]||0)+Number(r.opened||0);});
