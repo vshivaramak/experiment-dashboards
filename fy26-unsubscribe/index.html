@@ -160,6 +160,15 @@
   dl.tab4-defs { margin: 4px 0; }
   dl.tab4-defs dt { font-weight: 600; color: var(--accent); margin-top: 10px; font-size: .82rem; }
   dl.tab4-defs dd { margin: 3px 0 0; color: var(--text); font-size: .82rem; line-height: 1.5; }
+  .tc-caption { font-size: 0.92rem; margin: 14px 0 2px; color: var(--text); }
+  .tc-svg { width: 100%; height: auto; display: block; margin-top: 4px; }
+  .tc-grid { stroke: var(--border); stroke-width: 1; }
+  .tc-yl { fill: var(--muted); font-size: 10px; text-anchor: end; }
+  .tc-xl { fill: var(--muted); font-size: 10px; text-anchor: middle; }
+  .tc-area { fill: var(--accent); opacity: 0.12; stroke: none; }
+  .tc-line { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linejoin: round; }
+  .tc-dot { fill: var(--accent); }
+  .tc-end { fill: var(--accent); font-size: 12px; font-weight: 700; text-anchor: start; }
   @media (max-width: 800px) {
     .tab4-filter-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     .tab4-kpis { grid-template-columns: repeat(4, 1fr); }
@@ -172,7 +181,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-15 20:31 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-15 21:43 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -1023,10 +1032,10 @@ LATERAL VIEW stack(12,
       <label>Phase<select id="t4-phase"><option>All</option></select></label>
       <button id="t4-reset" type="button">Reset</button>
     </div>
-    <p class="note">The date range + phase drive the headline snapshot and the Season cards (volume by event date,
-      Unsubs by opt-out date). The Campaign Deep-Dive is scoped by phase (not the date range) to keep each
-      campaign's unsub counts accurate. Segment cuts live in the Subscription Base, Segment Insight, and
-      Frequency sections (own selectors). Cells under 10 are suppressed.</p>
+    <p class="note">The date range + phase drive the headline snapshot, the Season cards (volume by event date,
+      Unsubs by opt-out date) and the Subscription Base (latest snapshot + trend within the window).
+      The Campaign Deep-Dive is scoped by phase (not the date range) to keep each campaign's unsub counts
+      accurate. Age/SKU/Tenure cuts have their own selectors in the sections below. Cells under 10 are suppressed.</p>
   </div>
 
   <h2>FY26 Email Volume - Headline Snapshot</h2>
@@ -1058,7 +1067,8 @@ LATERAL VIEW stack(12,
   <div class="card">
     <p>Month-end promotional consent state per pseudonym: fully subscribed, partially subscribed,
       or fully unsubscribed, plus per-category counts. Reconstructed from consent history using the
-      official v_email_consent rule.</p>
+      official v_email_consent rule. The status cards reflect the latest snapshot within the global
+      date range / phase; the chart trends the fully-unsubscribed share across the months in that window.</p>
     <div class="tab4-frequency-filters">
       <label>Age band<select id="t4-sub-age"><option>All</option></select></label>
       <label>SKU<select id="t4-sub-sku"><option>All</option></select></label>
@@ -1985,24 +1995,51 @@ LEFT JOIN profile pr ON cohort.email = pr.email
     }).join('');
     $('t4-segment-table').innerHTML=`<table><thead><tr><th>${esc(dim)}</th><th>Pre-Season</th><th>Season</th><th>Post-Season</th><th>Total unsubs</th><th>Peak time-of-day</th></tr></thead><tbody>${body}</tbody></table>`;
   }
-  // --- Subscription base (local age/sku/tenure) ---
-  function subRows(){const end=val('t4-end'),a=val('t4-sub-age'),s=val('t4-sub-sku'),t=val('t4-sub-tenure');
-    const el=T.subscription.filter(r=>(!end||String(r.snapshot_month).slice(0,10)<=end)&&(a==='All'||r.age_band===a)&&(s==='All'||r.sku===s)&&(t==='All'||r.tenure_l2===t));
+  // --- Subscription base (global date+phase window + local age/sku/tenure) ---
+  const PW={'Pre-Season':['2025-11-01','2026-02-22'],'Season':['2026-02-23','2026-04-30'],'Post-Season':['2026-05-01','2026-10-31']};
+  function subWindow(){let lo=val('t4-start'),hi=val('t4-end');const ph=val('t4-phase');
+    if(ph!=='All'&&PW[ph]){if(PW[ph][0]>lo)lo=PW[ph][0];if(PW[ph][1]<hi)hi=PW[ph][1];}return [lo,hi];}
+  function subRows(){const w=subWindow(),lo=w[0],hi=w[1],a=val('t4-sub-age'),s=val('t4-sub-sku'),t=val('t4-sub-tenure');
+    const el=T.subscription.filter(r=>{const m=String(r.snapshot_month).slice(0,10);
+      return (!lo||m>=lo)&&(!hi||m<=hi)&&(a==='All'||r.age_band===a)&&(s==='All'||r.sku===s)&&(t==='All'||r.tenure_l2===t);});
     const months=[...new Set(el.map(r=>r.snapshot_month))].sort();return {all:el,latest:el.filter(r=>r.snapshot_month===months[months.length-1])};}
+  // Self-explanatory SVG line chart of the fully-unsubscribed share over months.
+  function trendChart(series){
+    if(series.length<2) return '<p class="note">Widen the date range to see the month-over-month trend.</p>';
+    const W=720,H=210,pL=42,pR=64,pT=16,pB=26,n=series.length;
+    const xs=i=>pL+i*(W-pL-pR)/(n-1);
+    const mx=Math.max(...series.map(d=>d.pct)),mn=Math.min(...series.map(d=>d.pct));
+    const y0=Math.max(0,Math.floor(mn-1)),y1=(Math.ceil(mx+1))||1;
+    const ys=v=>pT+(H-pT-pB)*(1-(v-y0)/((y1-y0)||1));
+    const P=series.map((d,i)=>[xs(i),ys(d.pct)]);
+    const line=P.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const area=line+' L '+xs(n-1).toFixed(1)+' '+ys(y0).toFixed(1)+' L '+xs(0).toFixed(1)+' '+ys(y0).toFixed(1)+' Z';
+    const grid=[y0,(y0+y1)/2,y1].map(v=>`<line x1="${pL}" y1="${ys(v).toFixed(1)}" x2="${W-pR}" y2="${ys(v).toFixed(1)}" class="tc-grid"/><text x="${pL-6}" y="${(ys(v)+3).toFixed(1)}" class="tc-yl">${v.toFixed(0)}%</text>`).join('');
+    const step=Math.ceil(n/6);
+    const xlab=series.map((d,i)=>(i%step===0||i===n-1)?`<text x="${xs(i).toFixed(1)}" y="${H-8}" class="tc-xl">${esc(d.m)}</text>`:'').join('');
+    const dots=P.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i===n-1?3.6:1.8}" class="tc-dot"/>`).join('');
+    const endLab=`<text x="${(xs(n-1)+7).toFixed(1)}" y="${(ys(series[n-1].pct)+4).toFixed(1)}" class="tc-end">${series[n-1].pct.toFixed(1)}%</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" class="tc-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Fully unsubscribed share by month">${grid}<path d="${area}" class="tc-area"/><path d="${line}" class="tc-line"/>${dots}${endLab}${xlab}</svg>`;
+  }
   function renderSubscription(){
     const s=subRows();const oneCat=[...new Set(s.latest.map(r=>r.category))].sort()[0];
     const st={};s.latest.filter(r=>r.category===oneCat).forEach(r=>{st[r.status]=(st[r.status]||0)+Number(r.pseudonym_n||0);});
-    $('t4-status-cards').innerHTML=['Fully subscribed','Partially subscribed','Fully unsubscribed'].map(k=>`<div class="recon-stat"><div class="recon-stat-n">${nfmt(st[k]||0)}</div><div class="recon-stat-l">${k}</div></div>`).join('')||'<p class="note">Pending.</p>';
+    $('t4-status-cards').innerHTML=['Fully subscribed','Partially subscribed','Fully unsubscribed'].map(k=>`<div class="recon-stat"><div class="recon-stat-n">${nfmt(st[k]||0)}</div><div class="recon-stat-l">${k}</div></div>`).join('')||'<p class="note">No snapshot in the selected range.</p>';
     const cats={};s.latest.forEach(r=>{if(['All','Overall','Status'].includes(r.category))return;const c=cats[r.category]=cats[r.category]||{sub:0,uns:0,subM:0,unsM:0};
       if(r.subscribed_n===null)c.subM++;else c.sub+=Number(r.subscribed_n||0);
       if(r.unsubscribed_n===null)c.unsM++;else c.uns+=Number(r.unsubscribed_n||0);});
     const ck=Object.keys(cats).sort();
     const supd=(v,m)=>(v<10&&(v>0||m>0))?'Suppressed':nfmt(v);
     $('t4-category-table').innerHTML=ck.length?`<table><thead><tr><th>Category</th><th>Subscribed</th><th>Unsubscribed</th></tr></thead><tbody>${ck.map(c=>`<tr><td>${esc(c)}</td><td>${supd(cats[c].sub,cats[c].subM)}</td><td>${supd(cats[c].uns,cats[c].unsM)}</td></tr>`).join('')}</tbody></table>`:'';
-    const oneC=[...new Set(s.all.map(r=>r.category))].sort()[0];const tr={};
-    s.all.filter(r=>r.category===oneC).forEach(r=>{tr[r.snapshot_month]=tr[r.snapshot_month]||{};tr[r.snapshot_month][r.status]=(tr[r.snapshot_month][r.status]||0)+Number(r.pseudonym_n||0);});
-    $('t4-trend').innerHTML=Object.keys(tr).sort().map(m=>{const tot=Object.values(tr[m]).reduce((a,b)=>a+b,0),fu=tr[m]['Fully unsubscribed']||0;
-      return `<div class="tab4-trend-row"><span>${esc(String(m).slice(0,7))}</span><div class="bar-track"><div class="bar b" style="width:${tot?100*fu/tot:0}%"></div></div><b>${pct(fu,tot)}</b></div>`;}).join('');
+    const oneC=[...new Set(s.all.map(r=>r.category))].sort()[0];const byM={};
+    s.all.filter(r=>r.category===oneC).forEach(r=>{const m=String(r.snapshot_month).slice(0,7);const o=byM[m]=byM[m]||{tot:0,fu:0};
+      const v=Number(r.pseudonym_n||0);o.tot+=v;if(r.status==='Fully unsubscribed')o.fu+=v;});
+    const series=Object.keys(byM).sort().map(m=>({m,pct:byM[m].tot?100*byM[m].fu/byM[m].tot:0}));
+    let cap='';
+    if(series.length>=2){const f=series[0],l=series[series.length-1],d=l.pct-f.pct;
+      cap=`<p class="tc-caption">Fully-unsubscribed share ${d>=0?'rose':'fell'} from <strong>${f.pct.toFixed(1)}%</strong> in ${f.m} to <strong>${l.pct.toFixed(1)}%</strong> by ${l.m} (${d>=0?'+':''}${d.toFixed(1)} pts).</p>`;}
+    else if(series.length===1){cap=`<p class="tc-caption"><strong>${series[0].pct.toFixed(1)}%</strong> fully unsubscribed at ${series[0].m}.</p>`;}
+    $('t4-trend').innerHTML=cap+trendChart(series);
   }
   function fillFreqVals(){const el=$('t4-frequency-value');el.innerHTML='<option>All</option>';fill('t4-frequency-value',vals(T.frequency.filter(r=>r.segment_type===val('t4-frequency-dim')),'segment_value'));}
   function renderFrequency(){const dim=val('t4-frequency-dim'),sv=val('t4-frequency-value');
@@ -2012,7 +2049,7 @@ LEFT JOIN profile pr ON cohort.email = pr.email
       <td>${r.unsubs===null?'Suppressed':nfmt(r.unsubs)}</td><td>${r.association_rate_pct===null?'\u2014':Number(r.association_rate_pct||0).toFixed(2)+'%'}</td>
       <td>${Number(r.median_sends||0).toFixed(0)} / ${Number(r.p25_sends||0).toFixed(0)}\u2013${Number(r.p75_sends||0).toFixed(0)}</td></tr>`).join('')}</tbody></table>`:'<p class="note">Pending.</p>';
   }
-  function renderTop(){renderHeadline();renderPhases();renderCampaigns();}
+  function renderTop(){renderHeadline();renderPhases();renderCampaigns();renderSubscription();}
   ['t4-start','t4-end','t4-phase'].forEach(id=>$(id).addEventListener('change',renderTop));
   ['t4-sub-age','t4-sub-sku','t4-sub-tenure'].forEach(id=>$(id).addEventListener('change',renderSubscription));
   $('t4-seg-dim').addEventListener('change',renderSegment);
