@@ -177,6 +177,11 @@
   .tc-pt { fill: var(--accent); opacity: 0.45; }
   .tc-pt-hot { fill: var(--review); opacity: 0.8; }
   .tc-cell { fill: var(--accent); }
+  .st-a { fill: #2563eb; }
+  .st-b { fill: #10b981; }
+  .st-c { fill: #f59e0b; }
+  .st-d { fill: #ef4444; }
+  .st-e { fill: #94a3b8; }
   .tab5-intro { margin-bottom: 14px; }
   .tab5-filter { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
   .tab5-filter label { display: flex; flex-direction: column; gap: 3px; color: var(--muted); font-size: .75rem; font-weight: 600; }
@@ -195,7 +200,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-16 20:02 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-16 20:17 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -3614,9 +3619,10 @@ GROUP BY 1, 2, 3, 4, 5, 6
        const grid={};cats.forEach(c=>{grid[c]={};pc.filter(r=>r.category===c).forEach(r=>{if(r.drops!=null)grid[c][r.code_family]=(grid[c][r.code_family]||0)+(+r.drops||0);});});
        $('t5-partialcode').innerHTML=svgStack(cats,parts,grid);
        // dominant family per top category
+       const NAMED=['PRE','POST','ENG','DSKT'];
        const top=cats.map(c=>({c,tot:parts.reduce((a,p)=>a+(grid[c][p]||0),0)})).sort((a,b)=>b.tot-a.tot)[0];
-       let domf='';if(top){domf=parts.map(p=>({p,n:grid[top.c][p]||0})).sort((a,b)=>b.n-a.n)[0].p;}
-       $('t5-partialcode-take').innerHTML=top?`Drops of <strong>${esc(top.c)}</strong> are most often preceded by a <strong>${esc(domf)}</strong> campaign - the code family to tune for that stream.`:'';
+       let domf='';if(top){domf=NAMED.map(p=>({p,n:grid[top.c][p]||0})).sort((a,b)=>b.n-a.n)[0].p;}
+       $('t5-partialcode-take').innerHTML=top?`<strong>${esc(top.c)}</strong> is the most-dropped stream; among tunable code families it is most often preceded by <strong>${esc(domf)}</strong> - the family to tune for that stream.`:'';
      } else {$('t5-partialcode-section').style.display='none';}
    }
    // ---------- 7. campaigns ----------
