@@ -200,7 +200,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-20 21:34 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-20 21:46 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -5105,10 +5105,11 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
        }
        const lead=series.find(s=>s.hot)||series[0];
        if(lead&&lead.pts.length>1){
-         const delta=lead.pts[lead.pts.length-1].y-lead.pts[0].y;
+         const first=lead.pts[0],last=lead.pts[lead.pts.length-1];
+         const delta=last.y-first.y;
          let pkI=1;for(let i=2;i<lead.pts.length;i++)if(lead.pts[i].y-lead.pts[i-1].y>lead.pts[pkI].y-lead.pts[pkI-1].y)pkI=i;
-         const base=lead.pts[lead.pts.length-1].base;
-         take=`STOCK · fully-unsubscribed share of each month-end base. <strong>${esc(lead.name)}</strong> erodes fastest in this window (${delta>=0?'+':''}${delta.toFixed(1)} pts on a base of ${nf(base)}); steepest step into <strong>${esc(MLAB(lead.pts[pkI].m))}</strong>.`;
+         take=`STOCK · fully-unsubscribed share of each month-end base. <strong>${esc(lead.name)}</strong> erodes fastest in this window (${delta>=0?'+':''}${delta.toFixed(1)} pts on a base of ${nf(last.base)}); steepest step into <strong>${esc(MLAB(lead.pts[pkI].m))}</strong>.`;
+         if(!note)note=`How to read this vs section 1: this is a cumulative status share — of ${nf(last.base)} people in the ${esc(lead.name==='All'?'consent base':lead.name+' base')}, ${last.y.toFixed(1)}% sit fully-unsubscribed as of ${MLAB(last.m)}, accumulated over ALL years (the selected window itself moved it ${delta>=0?'+':''}${delta.toFixed(1)} pts, from ${first.y.toFixed(1)}%). Section 1's Unsub Rate is a different ratio: this window's unsubscribe events per email OPENED. People-level and event-level rates are not comparable.`;
        }
      }
      const fmtY=metric==='flow'?nf:(x=>x.toFixed(1)+'%');
