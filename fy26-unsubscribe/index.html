@@ -200,7 +200,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-20 21:24 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-20 21:34 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -4796,8 +4796,9 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
   <div class="callout tab5-intro">
     <strong>FY27 Retention Diagnostics v2.</strong> Same data as the Retention Diagnostics tab,
     rebuilt around the two stakeholder questions: <em>what type of email makes people unsubscribe,
-    and is it journey fatigue?</em> Every card responds to all four filters below and states its
-    universe: <span class="t6-pill t6-pill-flow">FLOW &middot; <span id="t6-flow-total">&hellip;</span> exits</span>
+    and is it journey fatigue?</em> Every analytic card responds to all four filters below (the
+    FY27 Playbook alone is pinned to the full FY26 window so recommendations stay stable) and states
+    its universe: <span class="t6-pill t6-pill-flow">FLOW &middot; <span id="t6-flow-total">&hellip;</span> exits</span>
     <span class="t6-pill t6-pill-stock">STOCK &middot; consent base</span>
     <span class="t6-pill t6-pill-cohort">COHORT &middot; first-partial entrants</span>
   </div>
@@ -4849,7 +4850,10 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     <div class="t6-legend" id="t6-fatigue-legend"></div>
     <div id="t6-fatigue"></div>
     <p class="note">Bar length = customers who received exactly that many tagged emails in the window;
-    bar color = their unsubscribe rate (darker = worse). The highest-rate and largest-loss cohorts are called out.</p>
+    bar color = their unsubscribe rate (darker = worse). The highest-rate and largest-loss cohorts are called out.
+    Read the falling rates at high counts with care: high-count cohorts are, by construction, people who
+    stayed subscribed long enough to receive that many emails, so low rates there partly reflect survival,
+    not safety. The first-touch hazard chart below controls for this by measuring risk at each email position.</p>
     <h3>First-touch hazard by code family</h3>
     <p id="t6-firsttouch-take" class="tc-caption"></p>
     <div class="t6-legend" id="t6-firsttouch-legend"></div>
@@ -4868,7 +4872,9 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     Newsletter, Product education, Transactional, Survey). The share view sums to the section-1
     unsub total: Unattributed covers exits with no tracked last-open (all Desktop/Braze-path exits)
     plus campaign cells suppressed under the &lt;10 rule, and has no opens denominator, so it
-    appears only in the share view.</p>
+    appears only in the share view. Note this <em>Unattributed</em> bucket is not the section-1
+    <em>OTHER</em> code family: OTHER is a send-side step-naming catch-all, and an OTHER-family
+    send can still carry a known email type.</p>
     <h3>Campaign quadrant &mdash; reach vs unsub-per-open</h3>
     <p id="t6-quadrant-take" class="tc-caption"></p>
     <div class="t6-legend" id="t6-quadrant-legend"></div>
@@ -5032,7 +5038,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const u=sumS(eff(T.unsubtotSeg).filter(r=>mIn(r.month)&&pIn(r.phase)),'unsubs');
      const sent=sum(v,'sent'),del=sum(v,'delivered'),op=sum(v,'opened'),cl=sum(v,'clicked');
      const unTxt=u.masked&&u.v<10?'Suppressed':nf(u.v)+(u.masked?'*':'');
-     $('t6-kpis').innerHTML=[['Sent',nf(sent)],['Delivered',nf(del)],['Opened',nf(op)],['OR',pct(op,del)],['Clicked',nf(cl)],['CTOR',pct(cl,op)],['Unsubs',unTxt],['Unsub Rate',pct(u.masked&&u.v<10?null:u.v,op)]]
+     $('t6-kpis').innerHTML=[['Sent',nf(sent)],['Delivered',nf(del)],['Opened',nf(op)],['OR',pct(op,del)],['Clicked',nf(cl)],['CTOR',pct(cl,op)],['Unsubs',unTxt],['Unsub Rate (/open)',pct(u.masked&&u.v<10?null:u.v,op)]]
        .map(k=>`<div class="tab4-kpi"><span>${k[1]}</span><small>${k[0]}</small></div>`).join('');
      const uf=eff(T.unsubfamSeg).filter(r=>mIn(r.month)&&pIn(r.phase));
      const fam={};FAMILIES.forEach(f=>fam[f]={sent:0,delivered:0,opened:0,clicked:0,unsubs:0,supp:0});
@@ -5041,21 +5047,28 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const rows=FAMILIES.filter(f=>fam[f]&&(fam[f].sent||fam[f].unsubs)).map(f=>{const x=fam[f];
        const un=x.supp&&x.unsubs<10?'Suppressed':nf(x.unsubs)+(x.supp?'*':'');
        return `<tr><td>${f}</td><td>${nf(x.sent)}</td><td>${nf(x.delivered)}</td><td>${nf(x.opened)}</td><td>${pct(x.opened,x.delivered)}</td><td>${nf(x.clicked)}</td><td>${pct(x.clicked,x.opened)}</td><td>${un}</td><td>${pct(x.supp&&x.unsubs<10?null:x.unsubs,x.opened)}</td></tr>`;}).join('');
-     $('t6-family-table').innerHTML=rows?`<table><thead><tr><th>Code family</th><th>Sent</th><th>Delivered</th><th>Opened</th><th>OR</th><th>Clicked</th><th>CTOR</th><th>Unsubs</th><th>Unsub Rate</th></tr></thead><tbody>${rows}</tbody></table><p class="note">* some monthly cells suppressed (&lt;10); shown total is the visible-cell sum.</p>`:'<p class="t6-note-empty">No email volume for this segment in the window.</p>';
+     const famSum=FAMILIES.reduce((a,f)=>a+(fam[f]?fam[f].unsubs:0),0);
+     const gap=Math.max(0,u.v-famSum);
+     $('t6-family-table').innerHTML=rows?`<table><thead><tr><th>Code family</th><th>Sent</th><th>Delivered</th><th>Opened</th><th>OR</th><th>Clicked</th><th>CTOR</th><th>Unsubs</th><th>Unsub Rate (/open)</th></tr></thead><tbody>${rows}</tbody></table><p class="note">Rate = unsubs &divide; opens within the family (dividing by sends gives a different, lower number).${gap?` * family rows show the visible-cell sum: ${nf(famSum)} of ${nf(u.v)}; ${nf(gap)} exits sit in suppressed (&lt;10) cells.`:''}</p>`:'<p class="t6-note-empty">No email volume for this segment in the window.</p>';
    }
 
    // ---------- 2. season ----------
    function renderSeason(){
+     let phaseSum=0;
      $('t6-season').innerHTML=Object.entries(T.phases).map(([p,cfg])=>{
        if(!pIn(p))return '';
        const v=eff(T.volfamSeg).filter(r=>r.phase===p&&mIn(r.month));
        const u=sumS(eff(T.unsubtotSeg).filter(r=>r.phase===p&&mIn(r.month)),'unsubs');
+       phaseSum+=u.v;
        const sent=sum(v,'sent'),del=sum(v,'delivered'),op=sum(v,'opened'),cl=sum(v,'clicked');
        return `<div class="phase-card"><h3>${esc(p)} <span class="phase-period">${esc(cfg.label)}</span></h3>
          <p class="phase-stats"><strong>${nf(sent)}</strong> sent · <strong>${nf(del)}</strong> delivered · <strong>${nf(op)}</strong> opened · <strong>${nf(cl)}</strong> clicked</p>
          <p class="phase-stats phase-funnel">${pct(op,del)} OR · ${pct(cl,op)} CTOR · <strong>${u.masked&&u.v<10?'Suppressed':nf(u.v)}</strong> unsubs · ${pct(u.masked&&u.v<10?null:u.v,op)} unsub/open</p></div>`;
      }).join('')||'<p class="t6-note-empty">Selected phase is outside the window.</p>';
-     $('t6-season-note').textContent='Phase cards cut the same universe as section 1 for '+segLabel()+'; Aug–Oct 2025 activity sits outside the three strategy phases and is included only when Phase = All.';
+     const winTot=sumS(eff(T.unsubtotSeg).filter(r=>mIn(r.month)&&pIn(r.phase)),'unsubs').v;
+     const outside=Math.max(0,winTot-phaseSum);
+     $('t6-season-note').textContent='Phase cards cut the same universe as section 1 for '+segLabel()+'.'+
+       (val('t6-phase')==='All'&&outside?` The three phases cover ${nf(phaseSum)} of ${nf(winTot)} unsubs in this window; the remaining ${nf(outside)} occurred Aug–Oct 2025, before Pre-Season opens (included only when Phase = All).`:'');
    }
 
    // ---------- 3. trend (momentum / erosion, segment-split lines) ----------
@@ -5094,7 +5107,8 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
        if(lead&&lead.pts.length>1){
          const delta=lead.pts[lead.pts.length-1].y-lead.pts[0].y;
          let pkI=1;for(let i=2;i<lead.pts.length;i++)if(lead.pts[i].y-lead.pts[i-1].y>lead.pts[pkI].y-lead.pts[pkI-1].y)pkI=i;
-         take=`STOCK · fully-unsubscribed share of each month-end base. <strong>${esc(lead.name)}</strong> erodes fastest in this window (${delta>=0?'+':''}${delta.toFixed(1)} pts); steepest step into <strong>${esc(MLAB(lead.pts[pkI].m))}</strong>.`;
+         const base=lead.pts[lead.pts.length-1].base;
+         take=`STOCK · fully-unsubscribed share of each month-end base. <strong>${esc(lead.name)}</strong> erodes fastest in this window (${delta>=0?'+':''}${delta.toFixed(1)} pts on a base of ${nf(base)}); steepest step into <strong>${esc(MLAB(lead.pts[pkI].m))}</strong>.`;
        }
      }
      const fmtY=metric==='flow'?nf:(x=>x.toFixed(1)+'%');
@@ -5125,8 +5139,8 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const biggest=rated.reduce((a,r)=>r.unsub>a.unsub?r:a,rated[0]);
      rows.forEach(r=>{r.worst=(r===worst);r.biggest=(r===biggest&&r!==worst);});
      $('t6-fatigue').innerHTML=rateBars(rows);
-     const q=(rmax-rmin)/4;
-     legend('t6-fatigue-legend',RAMP.map((c,i)=>({c,t:(rmin+i*q).toFixed(1)+'–'+(rmin+(i+1)*q).toFixed(1)+'% rate'})).concat([{c:NEUTRAL,t:'suppressed'}]));
+     const q=(rmax-rmin)/4,lo0=Math.floor(rmin*10)/10;
+     legend('t6-fatigue-legend',RAMP.map((c,i)=>({c,t:(i===0?lo0:rmin+i*q).toFixed(1)+'–'+(rmin+(i+1)*q).toFixed(1)+'% rate'})).concat([{c:NEUTRAL,t:'suppressed'}]));
      const totalUn=rated.reduce((a,r)=>a+r.unsub,0);
      $('t6-fatigue-take').innerHTML=`For ${esc(segLabel())}: <strong>${nf(worst.cohort)}</strong> customers received ${esc(worst.label)} and <strong>${worst.rate.toFixed(2)}%</strong> of them unsubscribed — the worst rate. The largest absolute loss sits at <strong>${esc(biggest.label)}</strong> (${nf(biggest.unsub)} of ${nf(totalUn)} exits, ${pct(biggest.unsub,totalUn)}).`;
      return {rows:rated,totalUn};
@@ -5140,11 +5154,12 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const shareEarly=f.totalUn?100*early/f.totalUn:0;
      if(!low||!high){el.innerHTML='<span class="t6-badge t6-badge-partial">VERDICT · INSUFFICIENT DATA</span> in this window for '+esc(segLabel())+'.';return;}
      const ratio=high.rate/(low.rate||1);
+     const peak=f.rows.reduce((a,r)=>r.rate>a.rate?r:a,f.rows[0]);
      let badge,cls,read;
-     if(ratio>=1.5){badge='FATIGUE: SUPPORTED';cls='t6-badge-yes';read='volume does raise risk — frequency caps will pay off';}
+     if(ratio>=1.5){badge='FATIGUE: SUPPORTED — CUMULATIVE';cls='t6-badge-yes';read='risk keeps climbing with volume — frequency caps will pay off directly';}
      else if(ratio>1.1){badge='FATIGUE: PARTIAL';cls='t6-badge-partial';read='volume raises risk modestly — pair frequency caps with fixing the highest-risk sends';}
-     else{badge='FATIGUE: NOT SUPPORTED';cls='t6-badge-no';read='risk is front-loaded, not cumulative — fix targeting of the first sends rather than cutting overall volume';}
-     el.innerHTML=`<span class="t6-badge ${cls}">${badge}</span> for ${esc(segLabel())} in this window. Customers receiving <strong>10+ emails</strong> unsubscribe at <strong>${high.rate.toFixed(2)}%</strong> vs <strong>${low.rate.toFixed(2)}%</strong> for 1–3 emails (<strong>${ratio.toFixed(1)}×</strong>). <strong>${shareEarly.toFixed(0)}%</strong> of exits happen within the first 5 emails — ${read}.`;
+     else{badge='FATIGUE: EARLY-DOSE, NOT CUMULATIVE';cls='t6-badge-no';read='the risk is concentrated in the opening sends, so fix targeting and pacing of the first few emails rather than cutting overall volume';}
+     el.innerHTML=`<span class="t6-badge ${cls}">${badge}</span> for ${esc(segLabel())} in this window. The unsubscribe rate peaks at <strong>${esc(String(peak.k>=20?'20+':peak.k))} emails</strong> (${peak.rate.toFixed(2)}%), and customers who went on to receive <strong>10+ tagged emails</strong> exited at <strong>${high.rate.toFixed(2)}%</strong> — about ${Math.round(100*ratio)}% of the ${low.rate.toFixed(2)}% seen at 1–3 emails. <strong>${shareEarly.toFixed(0)}%</strong> of exits happen within the first 5 tagged emails: ${read}. (High-count cohorts are survivors by construction — see the note under the chart.)`;
    }
    function renderFirstTouch(){
      const start=val('t6-start'),end=val('t6-end'),phase=val('t6-phase');
@@ -5155,7 +5170,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
        return {name:fm,color:FCOL[fm],pts:rows.map(r=>({m:String(r.count_k).padStart(2,'0'),y:+r.unsub_rate}))};}).filter(s=>s.pts.length>1);
      if(!series.length){$('t6-firsttouch').innerHTML='<p class="t6-note-empty">No first-touch series for '+esc(segLabel())+' (tagged sends only).</p>';$('t6-firsttouch-take').innerHTML='';legend('t6-firsttouch-legend',[]);return;}
      const kfmt=m=>'email '+(+m);
-     $('t6-firsttouch').innerHTML=lineChart(series.map(s=>({...s,pts:s.pts.map(p=>({...p}))})),{yfmt:x=>x.toFixed(0)+'%',tfmt:p=>p.y.toFixed(2)+'%',xfmt:kfmt});
+     $('t6-firsttouch').innerHTML=lineChart(series.map(s=>({...s,pts:s.pts.map(p=>({...p}))})),{yfmt:x=>x.toFixed(1)+'%',tfmt:p=>p.y.toFixed(2)+'%',xfmt:kfmt});
      legend('t6-firsttouch-legend',series.map(s=>({c:s.color,t:s.name})));
      const peaks=series.map(s=>{const pk=s.pts.reduce((a,p)=>p.y>a.y?p:a);return {name:s.name,at:+pk.m,rate:pk.y};});
      const frontLoaded=peaks.filter(p=>p.at<=3);
@@ -5196,10 +5211,13 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
          :' — no email type reaches enough attributed unsubscribes in this window to compare content risk.';
        el.innerHTML='<span class="t6-badge t6-badge-partial">EMAIL TYPE · NOT MEASURABLE FOR THIS FILTER</span>'+why;return;}
      const worst=rate[0];
-     const med=rate[Math.floor(rate.length/2)];
+     const sortedP=rate.map(r=>r.pct).sort((a,b)=>a-b);
+     const med=sortedP.length%2?sortedP[(sortedP.length-1)/2]:(sortedP[sortedP.length/2-1]+sortedP[sortedP.length/2])/2;
      const totShare=share.reduce((a,d)=>a+d.n,0);
      const worstShare=share.find(d=>d.label===worst.label);
-     el.innerHTML=`<span class="t6-badge t6-badge-yes">EMAIL TYPE · ${esc(worst.label.toUpperCase())}</span> is the riskiest content for ${esc(segLabel())}: <strong>${worst.pct.toFixed(1)} unsubs per 1,000 opens</strong>${rate.length>1?` vs ${med.pct.toFixed(1)} for the median type (<strong>${(worst.pct/(med.pct||1)).toFixed(1)}×</strong>)`:''}${worstShare?`, and it accounts for <strong>${pct(worstShare.n,totShare)}</strong> of exits in this filter`:''}. Exposure-adjusted — opens are the denominator, so this is content risk, not just volume.`;
+     const second=rate[1]&&rate[1].pct>=0.6*worst.pct?rate[1]:null;
+     const secondShare=second?share.find(d=>d.label===second.label):null;
+     el.innerHTML=`<span class="t6-badge t6-badge-yes">EMAIL TYPE · ${esc(worst.label.toUpperCase())}</span> is the riskiest content for ${esc(segLabel())}: <strong>${worst.pct.toFixed(1)} unsubs per 1,000 opens</strong>${rate.length>1?` vs a median of ${med.toFixed(1)} across types (<strong>${(worst.pct/(med||1)).toFixed(1)}×</strong>)`:''}${worstShare?`, and it accounts for <strong>${pct(worstShare.n,totShare)}</strong> of exits in this filter`:''}.${second?` <strong>${esc(second.label)}</strong> is a close second (${second.pct.toFixed(1)}/1k${secondShare?`, ${pct(secondShare.n,totShare)} of exits`:''}) — together they drive ${worstShare&&secondShare?pct(worstShare.n+secondShare.n,totShare):'most'} of the loss.`:''} Exposure-adjusted — opens are the denominator, so this is content risk, not just volume.`;
    }
    function renderQuadrant(){
      const rows=eff(P.campaignWindow).filter(r=>dateIn(r.event_date)&&pIn(r.phase));
@@ -5254,13 +5272,15 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const exTot=ex.reduce((a,r)=>a+ +r.n,0),exZero=ex.filter(r=>r.bucket==='0').reduce((a,r)=>a+ +r.n,0);
      const sku=P.erosion.filter(r=>r.segment_type==='SKU'&&!['Unknown','Not in PAM','No product (never started)','All'].includes(r.segment_value));
      const byV={};sku.forEach(r=>{(byV[r.segment_value]=byV[r.segment_value]||[]).push(r);});
-     const eroder=Object.entries(byV).map(([n,rs])=>{rs.sort((a,b)=>a.month<b.month?-1:1);return {n,d:rs[rs.length-1].share-rs[0].share};}).sort((a,b)=>b.d-a.d)[0];
+     const eroders=Object.entries(byV).map(([n,rs])=>{rs.sort((a,b)=>a.month<b.month?-1:1);return {n,d:rs[rs.length-1].share-rs[0].share,base:+rs[rs.length-1].base_n};}).sort((a,b)=>b.d-a.d);
+     const eroder=eroders[0];
+     const bigEroder=eroders.find(e=>e.base>=50000);
      const items=[
-       `<strong>Cap early sends.</strong> ${pct(early,totF)} of FY26 exits happened within a customer's first 5 tagged emails — throttle and better-target opening sends before adding volume.`,
-       biggest?`<strong>Fix the biggest-loss frequency cohort.</strong> The ${biggest.sends_k>=20?'20+':biggest.sends_k}-email cohort alone produced ${nf(biggest.unsub_n)} exits (${pct(biggest.unsub_n,totF)} of the year).`:'',
+       `<strong>Cap early sends.</strong> ${pct(early,totF)} of FY26 tagged-cohort exits happened within a customer's first 5 tagged emails — throttle and better-target opening sends before adding volume.`,
+       biggest?`<strong>Fix the biggest-loss frequency cohort.</strong> The ${biggest.sends_k>=20?'20+':biggest.sends_k}-email cohort alone produced ${nf(biggest.unsub_n)} exits (${pct(biggest.unsub_n,totF)} of tagged-cohort exits; Desktop/untagged exits are outside this cohort universe).`:'',
        rated.length?`<strong>Rework ${esc(rated[0].t)} content.</strong> It runs ${rated[0].r.toFixed(1)} unsubs per 1,000 opens — the highest of any email type (section 5 lists the specific campaigns).`:'',
-       eroder?`<strong>Protect ${esc(eroder.n)}.</strong> Its consent base eroded ${eroder.d>=0?'+':''}${eroder.d.toFixed(1)} pts across FY26, the fastest of any SKU (section 3, STOCK view).`:'',
-       exTot?`<strong>Sunset the disengaged.</strong> ${pct(exZero,exTot)} of exiters opened nothing before leaving — a win-back/sunset policy beats more volume for them.`:'',
+       eroder?`<strong>Protect the fast-eroding SKUs.</strong> ${esc(eroder.n)} eroded ${eroder.d>=0?'+':''}${eroder.d.toFixed(1)} pts across FY26 (base ${nf(eroder.base)})${bigEroder&&bigEroder.n!==eroder.n?`; among large bases, <strong>${esc(bigEroder.n)}</strong> leads at ${bigEroder.d>=0?'+':''}${bigEroder.d.toFixed(1)} pts on ${nf(bigEroder.base)} customers`:''} (section 3, STOCK view).`:'',
+       exTot?`<strong>Sunset the disengaged.</strong> ${pct(exZero,exTot)} of exiters recorded zero opens before leaving (same FLOW exit universe as section 1) — a win-back/sunset policy beats more volume for them.`:'',
        `<strong>Offer stream-level frequency control.</strong> Section 6: most partial opt-outs start with one category — give that stream a frequency option before customers reach the global switch.`,
      ].filter(Boolean);
      $('t6-play').innerHTML=items.map(i=>`<li>${i}</li>`).join('');
