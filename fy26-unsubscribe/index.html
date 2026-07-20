@@ -200,7 +200,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-20 19:56 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-20 18:46 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -4572,23 +4572,6 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
        return `<text x="0" y="${y+15}" class="tc-bl">${esc(d.label)}</text><rect x="${pL}" y="${y}" width="${w}" height="19" class="${i===0?'tc-bar-hot':'tc-bar'}"/><text x="${pL+w+6}" y="${y+15}" class="tc-bv">${d.pct.toFixed(1)}% · ${nf(d.n)} ${esc(d.unit||'drops')}</text>`;}).join('')+'</svg>';
    }
 
-   // Single 100%-wide stacked bar for one distribution (ss1 style): colored
-   // segments with inline % labels + a legend, every segment part of one cohort.
-   const STACK_PALETTE=['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9','#64748b','#a3a3a3','#14b8a6'];
-   function svgOneStack(items,o){o=o||{};const W=760,pL=4,pR=4,barY=6,barH=26,legY=barH+20;
-     const vis=items.filter(d=>(d.n||0)>0);
-     if(!vis.length)return '<p class="note">No data in this filter.</p>';
-     const tot=vis.reduce((a,d)=>a+(d.n||0),0)||1;
-     const rows=Math.ceil(vis.length/3);const H=barY+barH+8+rows*16+6;
-     const barW=W-pL-pR;let x=pL,out=`<svg viewBox="0 0 ${W} ${H}" class="tc-svg">`;
-     vis.forEach((d,i)=>{const pctv=100*(d.n||0)/tot,w=barW*pctv/100,c=STACK_PALETTE[i%STACK_PALETTE.length];
-       out+=`<rect x="${x.toFixed(1)}" y="${barY}" width="${w.toFixed(1)}" height="${barH}" fill="${c}"><title>${esc(d.label)}: ${nf(d.n)} ${esc(o.unit||'people')} (${pctv.toFixed(1)}%)</title></rect>`;
-       if(w>=44)out+=`<text x="${(x+w/2).toFixed(1)}" y="${barY+barH/2+4}" text-anchor="middle" fill="white" font-size="11" font-weight="600">${pctv.toFixed(0)}%</text>`;
-       x+=w;});
-     vis.forEach((d,i)=>{const pctv=100*(d.n||0)/tot,lx=pL+(i%3)*(barW/3),ly=barY+barH+16+Math.floor(i/3)*16,c=STACK_PALETTE[i%STACK_PALETTE.length];
-       out+=`<rect x="${lx}" y="${ly-9}" width="10" height="10" fill="${c}"/><text x="${lx+14}" y="${ly}" class="tc-xl" text-anchor="start">${esc(d.label)} ${pctv.toFixed(1)}% (${nf(d.n)})</text>`;});
-     return out+'</svg>';}
-
    function svgStack100(cats,parts,grid){
      const rowH=35,pL=90,W=760,pR=15,H=cats.length*rowH+34,cls={PRE:'st-a',POST:'st-b',ENG:'st-c',DSKT:'st-d',OTHER:'st-e',Unattributed:'st-e'};
      let out=`<svg viewBox="0 0 ${W} ${H}" class="tc-svg">`;
@@ -4697,15 +4680,15 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const statuses=grouped('status'),categories=grouped('category'),families=grouped('family');
      const full=(statuses.find(x=>x.label==='Fully unsubscribed')||{n:0,pct:0});
      const notFull=Math.max(0,cohort-full.n);
-     $('t5-partial-denom').innerHTML=cohort?`Common denominator: <strong>${nf(cohort)} people</strong> whose first durable partial opt-out occurred in the selected window/phase/segment. Each bar below is that same 100% cohort, split into its shares.`:'No durable first-partial cohort in this filter.';
-     $('t5-status').innerHTML=svgOneStack(statuses);
-     $('t5-outcome').innerHTML=svgOneStack([
-       {label:'Did not reach full by selected end',n:notFull},
-       {label:'Reached full unsubscribe',n:full.n}
+     $('t5-partial-denom').innerHTML=cohort?`Common denominator: <strong>${nf(cohort)} people</strong> whose first durable partial opt-out occurred in the selected window/phase/segment. Every view below sums to this same cohort.`:'No durable first-partial cohort in this filter.';
+     $('t5-status').innerHTML=svgPctBars(statuses);
+     $('t5-outcome').innerHTML=svgPctBars([
+       {label:'Did not reach full by selected end',n:notFull,pct:cohort?100*notFull/cohort:0,unit:'people'},
+       {label:'Reached full unsubscribe',n:full.n,pct:full.pct,unit:'people'}
      ]);
      $('t5-outcome-take').innerHTML=cohort?`<strong>${nf(full.n)} of ${nf(cohort)} (${full.pct.toFixed(1)}%)</strong> progressed from durable partial to fully unsubscribed by the selected end month.`:'';
-     $('t5-stream').innerHTML=svgOneStack(categories);
-     $('t5-partialcode').innerHTML=svgOneStack(families);
+     $('t5-stream').innerHTML=svgPctBars(categories);
+     $('t5-partialcode').innerHTML=svgPctBars(families);
      const topCat=categories[0],topFam=families[0];
      $('t5-stream-take').innerHTML=topCat?`<strong>${esc(topCat.label)}</strong> was the first category turned off for ${topCat.pct.toFixed(1)}% of the cohort.`:'';
      $('t5-partialcode-take').innerHTML=topFam?`<strong>${esc(topFam.label)}</strong> was the latest campaign family before partial entry for ${topFam.pct.toFixed(1)}% of the cohort. Association, not causation.`:'';
