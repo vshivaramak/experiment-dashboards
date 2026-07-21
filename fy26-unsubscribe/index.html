@@ -200,7 +200,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-21 15:40 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-21 15:48 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -4867,12 +4867,14 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     stayed subscribed long enough to receive that many emails, so low rates there partly reflect survival,
     not safety. The first-touch hazard chart below controls for this by measuring risk at each email position.</p>
     <h3>First-touch hazard by code family</h3>
+    <div class="t6-grain"><span class="t6-grain-tag">GRAIN</span>PEOPLE, per family — of the customers who received exactly N emails of THAT family in the window, the share who unsubscribed in the window. A customer who received two families appears on both lines, once each, at their exact count.<br/><span class="t6-grain-tag">EXAMPLE</span>Jane received 6 PRE emails and 1 ENG email, then unsubscribed &rarr; she is 1 person in the PRE line's 'email 6' cohort AND 1 person in the ENG line's 'email 1' cohort. If 90,000 people got exactly 3 PRE emails and 6,500 of them unsubscribed, the PRE point at 'email 3' reads 7.2%.</div>
     <p id="t6-firsttouch-take" class="tc-caption"></p>
     <div class="t6-legend" id="t6-firsttouch-legend"></div>
     <div id="t6-firsttouch"></div>
     <p class="note">Unsub rate vs the Nth email of that family. A first-email peak is a targeting
     problem; a rising curve is a frequency problem.</p>
     <h3>&hellip;or was it the pile before it? (last-straw check)</h3>
+    <div class="t6-grain"><span class="t6-grain-tag">GRAIN</span>PEOPLE, at one moment each — the month their FIRST email of a family landed. Bucketed by how many emails of ANY family they had received in earlier months; counted as an unsub only if they exited in that same first-email month. Full FY26; the date/phase filters do not re-cut this chart.<br/><span class="t6-grain-tag">EXAMPLE</span>Jane got 10 PRE emails Nov&ndash;Feb, then her FIRST ENG email in March &rarr; on the ENG line she sits in the 'prior: 10+' bucket. If she unsubscribed in March, she is one of that point's unsubs. A line rising to the right = the family was the last straw on a pile; flat or falling = the first email itself (audience/content) is the problem.</div>
     <p id="t6-laststraw-take" class="tc-caption"></p>
     <div class="t6-legend" id="t6-laststraw-legend"></div>
     <div id="t6-laststraw"></div>
