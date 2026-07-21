@@ -200,7 +200,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-21 15:30 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-21 15:40 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -4839,7 +4839,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     <p class="note" id="t6-season-note"></p></div>
 
   <h2 id="t6-s3">3. Who erodes fastest &mdash; and when?<span class="t6-ctx"></span></h2>
-  <div class="card"><div class="t6-grain"><span class="t6-grain-tag">GRAIN</span>depends on the metric — Monthly exits: unsubscribe EVENTS per month · % of mailed customers lost: PEOPLE (window exits &divide; distinct mailed email addresses) · STOCK: PEOPLE (share of the consent base sitting fully-unsubscribed at month-end, accumulated over all years).<br/><span class="t6-grain-tag">EXAMPLE</span>Jane unsubscribed Mar 12 &rarr; one March exit on the FLOW line; the cumulative %-lost line steps up by one person; and from March onward she is inside the STOCK share forever.</div>
+  <div class="card"><div class="t6-grain" id="t6-trend-grain"></div>
     <div class="tab5-filter" style="padding:0;border:none;box-shadow:none;margin-bottom:6px">
       <label>Metric<select id="t6-metric">
         <option value="flow">Monthly exits (FLOW)</option>
@@ -5095,7 +5095,37 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
    }
 
    // ---------- 3. trend (momentum / erosion, segment-split lines) ----------
+   function grainTrend(){
+     const metric=val('t6-metric');
+     const g=(a,b)=>`<span class="t6-grain-tag">GRAIN</span>${a}<br/><span class="t6-grain-tag">EXAMPLE</span>${b}`;
+     const el=$('t6-trend-grain');
+     if(metric==='flow'){
+       const u=sumS(eff(T.unsubtotSeg).filter(r=>mIn(r.month)&&pIn(r.phase)),'unsubs');
+       el.innerHTML=g(`unsubscribe EVENTS per month — each of the <strong>${nf(u.v)}</strong> exits in this window/segment counts once, in its exit month. Same universe as section 1's Unsubs.`,
+         `Jane unsubscribed Mar 12 → one March exit on the line. Adding up every month reproduces section 1's Unsubs (<strong>${nf(u.v)}</strong>) exactly.`);
+     }else if(metric==='lost'){
+       const mb=T.mailedBase.find(r=>segActive()?(r.segment_type===val('t6-dim')&&r.segment_value===val('t6-val')):(r.segment_type==='Overall'&&r.segment_value==='All'));
+       const u=sumS(eff(T.unsubtotSeg).filter(r=>mIn(r.month)&&pIn(r.phase)),'unsubs');
+       el.innerHTML=mb?g(`PEOPLE — cumulative window exits ÷ <strong>${nf(mb.mailed_n)}</strong> distinct mailed email addresses (${segActive()?esc(segLabel()):'the full FY26 mailed base'}). The denominator is the fixed FY26 mailed base; the date filter re-cuts only the numerator.`,
+         `Jane is one mailed address. She unsubscribed Mar 12 → from March onward the line counts her once. End of the line here = ${nf(u.v)} exits ÷ ${nf(mb.mailed_n)} mailed = <strong>${mb.mailed_n?(100*u.v/mb.mailed_n).toFixed(2):'—'}%</strong> — the same exits as section 1.`)
+         :g(`PEOPLE — cumulative window exits ÷ mailed addresses. ${esc(segLabel())} has no mailed-base denominator (PAM segments only; desktop sends are untagged).`,
+            `Use the Monthly exits metric for this segment — it covers all its exits.`);
+     }else{
+       const dim=val('t6-dim'),v=val('t6-val');
+       let rows=P.erosion.filter(r=>r.segment_type==='Overall'&&r.segment_value==='All'),name='the consent base';
+       if(segActive()){const own=P.erosion.filter(r=>r.segment_type===dim&&r.segment_value===v);if(own.length){rows=own;name='the '+esc(v)+' base';}}
+       rows=rows.filter(r=>mIn(r.month)&&pIn(monthPhase(r.month))).sort((a,b)=>a.month<b.month?-1:1);
+       if(rows.length){
+         const f=rows[0],l=rows[rows.length-1];
+         const delta=Math.max(0,rows.reduce((a,r)=>a+(+r.mom_fully_unsub_n||0),0));
+         const mbAll=(T.mailedBase.find(r=>r.segment_type==='Overall')||{}).mailed_n;
+         el.innerHTML=g(`PEOPLE — of the <strong>${nf(l.base_n)}</strong> pseudonyms in ${name} (everyone with a consent record, mailed or not${name==='the consent base'&&mbAll?` — that is why it is bigger than the ${nf(mbAll)} mailed base`:''}), the share whose status is fully-unsubscribed at each month-end. Cumulative: once someone is fully out, they stay in this count every month after, whichever year they left.`,
+           `As of <strong>${esc(MLAB(l.month))}</strong>: <strong>${nf(l.fully_unsub_n)}</strong> people (${(+l.share).toFixed(1)}%) are fully unsubscribed. Only <strong>${nf(delta)}</strong> of them flipped during the selected window — the other <strong>${nf((+l.fully_unsub_n)-delta)}</strong> had already left in earlier years and remain in the count. Jane left in 2023 → she is still inside every month's share here, but she is NOT in section 1's Unsubs.`);
+       }else el.innerHTML=g('PEOPLE — consent-base status share at month-end.','No STOCK series in this filter.');
+     }
+   }
    function renderTrend(){
+     grainTrend();
      const dim=val('t6-dim'),v=val('t6-val'),metric=val('t6-metric');
      let series=[],take='',note='';
      if(metric==='flow'){
