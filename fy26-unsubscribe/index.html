@@ -200,7 +200,7 @@
 <div class="wrap">
   <span class="tag">CTA-5378</span>
   <h1>FY26 Unsubscribe Analysis</h1>
-  <p class="meta">Generated 2026-07-21 15:53 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
+  <p class="meta">Generated 2026-07-21 16:00 UTC · FY26 fiscal window Aug 1 2025 – Jul 31 2026 ·
     Source: tax_dm_ca.fact_catax_mktg_event ·
     <a href="https://vshivaramak.github.io/experiment-dashboards/fy26-unsubscribe/index.html">Published report</a></p>
 
@@ -4801,6 +4801,10 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     padding:8px 12px; margin:0 0 12px; font-size:.78rem; color:#42505c; line-height:1.55; }
   .t6-grain-tag { display:inline-block; font-size:.62rem; font-weight:800; letter-spacing:.06em;
     color:#fff; background:#5c6370; border-radius:3px; padding:1px 6px; margin-right:6px; }
+  .t6-tip { position: fixed; display: none; max-width: 340px; z-index: 200;
+    background: #1a1a2e; color: #fff; font-size: .74rem; line-height: 1.45;
+    padding: 7px 10px; border-radius: 6px; pointer-events: none;
+    white-space: pre-line; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
 </style>
   <div class="callout tab5-intro">
     <strong>FY27 Retention Diagnostics v2.</strong> Same data as the Retention Diagnostics tab,
@@ -4995,7 +4999,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      series.forEach(s=>{
        const d=s.pts.map((p,i)=>(i?'L':'M')+X(p.m).toFixed(1)+' '+Y(p.y).toFixed(1)).join(' ');
        out+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.hot?3:2}" opacity="${s.dim?0.42:1}"/>`;
-       s.pts.forEach(p=>{out+=`<circle cx="${X(p.m).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${s.hot?3.4:2.4}" fill="${s.color}" opacity="${s.dim?0.42:1}"><title>${esc(s.name)} · ${esc(xf(p.m))}: ${o.tfmt?o.tfmt(p):nf(p.y)}</title></circle>`;});});
+       s.pts.forEach(p=>{out+=`<circle cx="${X(p.m).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${s.hot?3.4:2.4}" fill="${s.color}" opacity="${s.dim?0.42:1}"/><circle cx="${X(p.m).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="11" fill="transparent" data-tip="${esc(s.name)} · ${esc(xf(p.m))}: ${esc(o.tfmt?o.tfmt(p):nf(p.y))}"/>`;});});
      // end labels with collision avoidance (min 13px vertical spacing)
      const lab=series.map(s=>{const last=s.pts[s.pts.length-1];return {s,y:Y(last.y),v:last.y};}).sort((a,b)=>a.y-b.y);
      for(let i=1;i<lab.length;i++)if(lab[i].y-lab[i-1].y<13)lab[i].y=lab[i-1].y+13;
@@ -5018,7 +5022,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
        const fill=r.rate==null?NEUTRAL:RAMP[r.bin];
        const stroke=r.worst?'stroke="#7a3403" stroke-width="2.5"':(r.biggest?'stroke="#1a1a2e" stroke-width="1.6" stroke-dasharray="4 2"':'');
        out+=`<text x="0" y="${y+15}" class="tc-bl">${esc(r.label)}</text>`;
-       out+=`<rect x="${pL}" y="${y}" width="${w.toFixed(1)}" height="19" rx="3" fill="${fill}" ${stroke}><title>${nf(r.cohort)} customers received ${esc(r.label)} · ${r.rate==null?'unsubs suppressed (<10)':nf(r.unsub)+' unsubscribed · '+r.rate.toFixed(2)+'% rate'}</title></rect>`;
+       out+=`<rect x="${pL}" y="${y}" width="${w.toFixed(1)}" height="19" rx="3" fill="${fill}" ${stroke} data-tip="${nf(r.cohort)} customers received ${esc(r.label)} · ${r.rate==null?'unsubs suppressed (<10)':nf(r.unsub)+' unsubscribed · '+r.rate.toFixed(2)+'% rate'}"/>`;
        const tag=r.worst?'  ⚠ highest rate':(r.biggest?'  ◆ largest loss':'');
        out+=`<text x="${(pL+w+7).toFixed(1)}" y="${y+15}" class="tc-bv">${nf(r.cohort)} · ${r.rate==null?'suppressed':r.rate.toFixed(2)+'% ('+nf(r.unsub)+')'}${esc(tag)}</text>`;});
      return out+'</svg>';}
@@ -5027,7 +5031,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      if(!items.length)return '<p class="t6-note-empty">'+esc(o.empty||'No data in this filter.')+'</p>';
      const mx=Math.max(...items.map(d=>d.pct||0),1);
      return `<svg viewBox="0 0 ${W} ${H}" class="tc-svg" role="img">`+items.map((d,i)=>{const y=i*rowH+5,w=(W-pL-pR)*(d.pct||0)/mx;
-       return `<text x="0" y="${y+15}" class="tc-bl">${esc(d.label)}</text><rect x="${pL}" y="${y}" width="${Math.max(1.5,w).toFixed(1)}" height="19" rx="3" fill="${d.color||(i===0?'#e56b12':'#9bbcac')}"><title>${esc(d.label)}: ${nf(d.n)} (${(d.pct||0).toFixed(1)}%)</title></rect><text x="${(pL+Math.max(1.5,w)+6).toFixed(1)}" y="${y+15}" class="tc-bv">${(d.pct||0).toFixed(1)}% · ${nf(d.n)}</text>`;}).join('')+'</svg>';}
+       return `<text x="0" y="${y+15}" class="tc-bl">${esc(d.label)}</text><rect x="${pL}" y="${y}" width="${Math.max(1.5,w).toFixed(1)}" height="19" rx="3" fill="${d.color||(i===0?'#e56b12':'#9bbcac')}" data-tip="${esc(d.label)}: ${nf(d.n)} (${(d.pct||0).toFixed(1)}%)"/><text x="${(pL+Math.max(1.5,w)+6).toFixed(1)}" y="${y+15}" class="tc-bv">${(d.pct||0).toFixed(1)}% · ${nf(d.n)}</text>`;}).join('')+'</svg>';}
 
    function oneStack(items,o){o=o||{};const W=760,barY=6,barH=30;
      const vis=items.filter(d=>(d.n||0)>0);
@@ -5036,7 +5040,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const rows=Math.ceil(vis.length/3);const H=barY+barH+12+rows*17;
      let x=2,out=`<svg viewBox="0 0 ${W} ${H}" class="tc-svg" role="img">`;
      vis.forEach((d,i)=>{const p=100*(d.n||0)/tot,w=(W-4)*p/100,c=d.color||CAT[i%CAT.length];
-       out+=`<rect x="${x.toFixed(1)}" y="${barY}" width="${Math.max(0,w-2).toFixed(1)}" height="${barH}" rx="2" fill="${c}"><title>${esc(d.label)}: ${nf(d.n)} (${p.toFixed(1)}%)</title></rect>`;
+       out+=`<rect x="${x.toFixed(1)}" y="${barY}" width="${Math.max(0,w-2).toFixed(1)}" height="${barH}" rx="2" fill="${c}" data-tip="${esc(d.label)}: ${nf(d.n)} (${p.toFixed(1)}%)"/>`;
        if(w>=46)out+=`<text x="${(x+w/2).toFixed(1)}" y="${barY+barH/2+4}" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">${p.toFixed(0)}%</text>`;
        x+=w;});
      vis.forEach((d,i)=>{const p=100*(d.n||0)/tot,lx=2+(i%3)*((W-4)/3),ly=barY+barH+16+Math.floor(i/3)*17,c=d.color||CAT[i%CAT.length];
@@ -5050,7 +5054,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const rmax=Math.max(...pts.map(p=>p.r||0),1);
      let out=`<svg viewBox="0 0 ${W} ${H}" class="tc-svg" role="img">`;
      out+=`<line x1="${X(o.mx).toFixed(1)}" y1="${pT}" x2="${X(o.mx).toFixed(1)}" y2="${H-pB}" class="tc-grid"/><line x1="${pL}" y1="${Y(o.my).toFixed(1)}" x2="${W-pR}" y2="${Y(o.my).toFixed(1)}" class="tc-grid"/>`;
-     pts.forEach(p=>{out+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${(4+9*Math.sqrt((p.r||0)/rmax)).toFixed(1)}" fill="${p.color}" opacity="0.82" stroke="${p.flag?'#1a1a2e':'#fff'}" stroke-width="${p.flag?2:1.5}"><title>${esc(p.label)}\n${esc(p.type)} · ${nf(p.x)} opens · ${p.y.toFixed(2)}% unsub/open · ${nf(p.r)} unsubs</title></circle>`;});
+     pts.forEach(p=>{out+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${Math.max(7,4+9*Math.sqrt((p.r||0)/rmax)).toFixed(1)}" fill="${p.color}" opacity="0.82" stroke="${p.flag?'#1a1a2e':'#fff'}" stroke-width="${p.flag?2:1.5}" data-tip="${esc(p.label)}\n${esc(p.type)} · ${nf(p.x)} opens · ${p.y.toFixed(2)}% unsub/open · ${nf(p.r)} unsubs"/>`;});
      out+=`<text x="${W-pR}" y="${H-6}" class="tc-xl" text-anchor="end">reach (log opens)</text><text x="4" y="${pT+6}" class="tc-yl" text-anchor="start">unsub/open %</text>`;
      return out+'</svg>';}
 
@@ -5303,7 +5307,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const named=TYPES.filter(t=>by[t]&&(by[t].opens||by[t].unsubs));
      const rate=named.filter(t=>by[t].opens>=1000).map(t=>({label:t,n:by[t].unsubs,pct:1000*by[t].unsubs/by[t].opens,color:typeColor(t)})).sort((a,b)=>b.pct-a.pct);
      $('t6-type-rate').innerHTML=rate.length?`<svg viewBox="0 0 360 ${rate.length*30+8}" class="tc-svg">`+rate.map((d,i)=>{const y=i*30+5,mx=Math.max(...rate.map(r=>r.pct),1),w=(360-118-128)*d.pct/mx;
-       return `<text x="0" y="${y+15}" class="tc-bl" font-size="10">${esc(d.label.slice(0,17))}</text><rect x="118" y="${y}" width="${Math.max(1.5,w).toFixed(1)}" height="19" rx="3" fill="${d.color}"><title>${esc(d.label)}: ${d.pct.toFixed(1)} unsubs per 1,000 opens (${nf(d.n)} unsubs)</title></rect><text x="${(118+Math.max(1.5,w)+6).toFixed(1)}" y="${y+15}" class="tc-bv">${d.pct.toFixed(1)}/1k · ${nf(d.n)}</text>`;}).join('')+'</svg>':'<p class="t6-note-empty">No type has ≥1,000 opens in this filter.</p>';
+       return `<text x="0" y="${y+15}" class="tc-bl" font-size="10">${esc(d.label.slice(0,17))}</text><rect x="118" y="${y}" width="${Math.max(1.5,w).toFixed(1)}" height="19" rx="3" fill="${d.color}" data-tip="${esc(d.label)}: ${d.pct.toFixed(1)} unsubs per 1,000 opens (${nf(d.n)} unsubs)"/><text x="${(118+Math.max(1.5,w)+6).toFixed(1)}" y="${y+15}" class="tc-bv">${d.pct.toFixed(1)}/1k · ${nf(d.n)}</text>`;}).join('')+'</svg>':'<p class="t6-note-empty">No type has ≥1,000 opens in this filter.</p>';
      const share=Object.entries(by).map(([t,x])=>({label:t,n:x.unsubs,color:typeColor(t)})).filter(d=>d.n>0).sort((a,b)=>b.n-a.n);
      $('t6-type-share').innerHTML=oneStack(share,{empty:'No exits in this filter.'});
      renderVerdictType(rate,share);
@@ -5340,7 +5344,7 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
      const fl=pts.filter(p=>p.flag);
      $('t6-quadrant-take').innerHTML=pts.length?`<strong>${fl.length}</strong> campaigns sit high-reach / high-unsub (top-right) for ${esc(segLabel())}${fl.length?` — led by <em>${esc(fl.sort((a,b)=>b.r-a.r)[0].label.replace(/^BAT-FY26-/,''))}</em>`:''}. A Top-5 list would miss ${Math.max(0,fl.length-5)} of them.`:'';
      $('t6-lasttouch').innerHTML=pts.length?`<svg viewBox="0 0 760 ${Math.min(10,pts.length)*30+8}" class="tc-svg">`+pts.slice().sort((a,b)=>b.r-a.r).slice(0,10).map((p,i)=>{const y=i*30+5,mxr=Math.max(...pts.map(q=>q.r),1),w=(760-300-140)*p.r/mxr;
-       return `<text x="0" y="${y+15}" class="tc-bl">${esc(p.label.replace(/^BAT-FY26-/,'').slice(0,44))}</text><rect x="300" y="${y}" width="${Math.max(1.5,w).toFixed(1)}" height="19" rx="3" fill="${p.color}"><title>${esc(p.label)} (${esc(p.type)}): ${nf(p.r)} last-touch unsubs</title></rect><text x="${(300+Math.max(1.5,w)+6).toFixed(1)}" y="${y+15}" class="tc-bv">${nf(p.r)}</text>`;}).join('')+'</svg>':'<p class="t6-note-empty">No attributed campaigns in this filter.</p>';
+       return `<text x="0" y="${y+15}" class="tc-bl">${esc(p.label.replace(/^BAT-FY26-/,'').slice(0,44))}</text><rect x="300" y="${y}" width="${Math.max(1.5,w).toFixed(1)}" height="19" rx="3" fill="${p.color}" data-tip="${esc(p.label)} (${esc(p.type)}): ${nf(p.r)} last-touch unsubs"/><text x="${(300+Math.max(1.5,w)+6).toFixed(1)}" y="${y+15}" class="tc-bv">${nf(p.r)}</text>`;}).join('')+'</svg>':'<p class="t6-note-empty">No attributed campaigns in this filter.</p>';
    }
 
    // ---------- 6. partial opt-out journey strip ----------
@@ -5395,6 +5399,20 @@ GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
    }
 
    // ---------- wiring ----------
+   // Instant tooltip layer: native SVG <title> needs a 1s precise hover, so
+   // every mark carries data-tip and one delegated listener shows this box.
+   let tip=document.querySelector('.t6-tip');
+   if(!tip){tip=document.createElement('div');tip.className='t6-tip';document.body.appendChild(tip);}
+   const pane=document.getElementById('tab-diagnostics-v2');
+   pane.addEventListener('mousemove',e=>{
+     const t=e.target.closest?e.target.closest('[data-tip]'):null;
+     if(t){tip.textContent=t.getAttribute('data-tip');tip.style.display='block';
+       let x=e.clientX+14;if(x+356>window.innerWidth)x=Math.max(4,e.clientX-356);
+       let y=e.clientY+14;if(y+90>window.innerHeight)y=e.clientY-70;
+       tip.style.left=x+'px';tip.style.top=y+'px';}
+     else tip.style.display='none';});
+   pane.addEventListener('mouseleave',()=>{tip.style.display='none';});
+
    function updateCtx(){
      const txt=`${MLAB(val('t6-start'))} – ${MLAB(val('t6-end'))} · ${val('t6-phase')==='All'?'All phases':val('t6-phase')} · ${segActive()?val('t6-dim')+' = '+val('t6-val'):'All customers'}`;
      document.querySelectorAll('#tab-diagnostics-v2 .t6-ctx').forEach(el=>{el.textContent=el.dataset.static||txt;});
